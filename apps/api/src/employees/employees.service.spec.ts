@@ -8,8 +8,6 @@ import { CreateEmployeeDto, UpdateEmployeeDto } from '@repo/schemas';
 
 describe('EmployeesService', () => {
   let service: EmployeesService;
-  let usersService: UsersService;
-  let searchService: SearchService;
 
   const mockUsersService = {
     getRandomUsers: jest.fn(),
@@ -34,8 +32,6 @@ describe('EmployeesService', () => {
     }).compile();
 
     service = module.get<EmployeesService>(EmployeesService);
-    usersService = module.get<UsersService>(UsersService);
-    searchService = module.get<SearchService>(SearchService);
   });
 
   afterEach(() => {
@@ -124,7 +120,7 @@ describe('EmployeesService', () => {
 
     it('should throw conflict exception if email already exists', () => {
       const existingEmail = 'existing@example.com';
-      
+
       // First populate the service with some employees
       service['employees'] = [
         {
@@ -147,7 +143,9 @@ describe('EmployeesService', () => {
         status: 'active',
       };
 
-      expect(() => service.create(createEmployeeDto)).toThrow(ConflictException);
+      expect(() => service.create(createEmployeeDto)).toThrow(
+        ConflictException,
+      );
     });
   });
 
@@ -158,7 +156,7 @@ describe('EmployeesService', () => {
         name: 'Updated Name',
         salary: 100000,
       };
-      
+
       // First populate the service with an employee
       service['employees'] = [
         {
@@ -200,12 +198,14 @@ describe('EmployeesService', () => {
         },
       ];
 
-      expect(() => service.update(nonExistentId, updateEmployeeDto)).toThrow(NotFoundException);
+      expect(() => service.update(nonExistentId, updateEmployeeDto)).toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw conflict exception if updating to an existing email', () => {
       const existingEmail = 'existing@example.com';
-      
+
       service['employees'] = [
         {
           id: 1,
@@ -231,14 +231,16 @@ describe('EmployeesService', () => {
         email: existingEmail, // Trying to use an email that's already in use
       };
 
-      expect(() => service.update(2, updateEmployeeDto)).toThrow(ConflictException);
+      expect(() => service.update(2, updateEmployeeDto)).toThrow(
+        ConflictException,
+      );
     });
   });
 
   describe('delete', () => {
     it('should delete an existing employee', () => {
       const employeeId = 1;
-      
+
       // First populate the service with an employee
       service['employees'] = [
         {
@@ -253,9 +255,9 @@ describe('EmployeesService', () => {
       ];
 
       expect(service['employees'].length).toBe(1);
-      
+
       service.delete(employeeId);
-      
+
       expect(service['employees'].length).toBe(0);
     });
 
@@ -305,7 +307,7 @@ describe('EmployeesService', () => {
       service['employees'] = mockEmployees;
 
       // Set up search parameters
-      const searchParams = { 
+      const searchParams = {
         query: 'John',
         department: 'Engineering',
         status: 'active',
@@ -321,7 +323,7 @@ describe('EmployeesService', () => {
       expect(mockSearchService.search).toHaveBeenCalledWith(
         mockEmployees,
         searchParams,
-        ['name', 'email', 'role']
+        ['name', 'email', 'role'],
       );
     });
 

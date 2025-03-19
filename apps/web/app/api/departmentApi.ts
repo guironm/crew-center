@@ -1,10 +1,11 @@
-const API_BASE_URL = "http://localhost:491";
-
 import { Department, ApiSearchParams } from "@repo/schemas";
+import { config } from "../config/env";
+
+const API_URL = `${config.API_BASE_URL}:${config.API_BASE_PORT}`;
 
 export const departmentApi = {
   getAll: async (): Promise<Department[]> => {
-    const response = await fetch(`${API_BASE_URL}/departments`);
+    const response = await fetch(`${API_URL}/departments`);
     if (!response.ok) {
       throw new Error(`Error fetching departments: ${response.status}`);
     }
@@ -19,14 +20,14 @@ export const departmentApi = {
 
     // Add all params directly to queryParams
     Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== "") {
+      if (value !== undefined && value !== null && value !== "") {
         console.log(`Adding param ${key}:`, value);
-        queryParams.append(key, value.toString());
+        queryParams.append(key, String(value));
       }
     });
 
     const queryString = queryParams.toString();
-    const url = `${API_BASE_URL}/departments/search${queryString ? `?${queryString}` : ""}`;
+    const url = `${API_URL}/departments/search${queryString ? `?${queryString}` : ""}`;
 
     console.log("Final search URL:", url);
 
@@ -38,7 +39,7 @@ export const departmentApi = {
   },
 
   getById: async (id: string | number): Promise<Department> => {
-    const response = await fetch(`${API_BASE_URL}/departments/${id}`);
+    const response = await fetch(`${API_URL}/departments/${id}`);
     if (!response.ok) {
       throw new Error(`Error fetching department: ${response.status}`);
     }

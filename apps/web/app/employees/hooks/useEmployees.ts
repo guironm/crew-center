@@ -58,7 +58,7 @@ export function useCreateEmployee() {
       // Invalidate everything related to employees with a single call
       queryClient.invalidateQueries({
         queryKey: ["employees"],
-        refetchType: "all"
+        refetchType: "all",
       });
     },
   });
@@ -78,7 +78,7 @@ export function useUpdateEmployee(id: string | number) {
       // Invalidate everything related to employees with a single call
       queryClient.invalidateQueries({
         queryKey: ["employees"],
-        refetchType: "all"
+        refetchType: "all",
       });
     },
   });
@@ -97,7 +97,7 @@ export function useDeleteEmployee() {
       // Invalidate everything related to employees with a single call
       queryClient.invalidateQueries({
         queryKey: ["employees"],
-        refetchType: "all"
+        refetchType: "all",
       });
     },
   });

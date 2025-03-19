@@ -82,25 +82,6 @@ export default function EmployeeList() {
     });
   };
 
-  const resetSearch = () => {
-    console.log("Resetting search params");
-
-    // Cancel any pending search queries
-    queryClient.cancelQueries({
-      queryKey: ["employees", "search"],
-      exact: false,
-    });
-
-    // Set search params back to defaults
-    setSearchParams({ sortOrder: "asc" });
-
-    // Invalidate the base employees query
-    queryClient.invalidateQueries({
-      queryKey: ["employees", "search", JSON.stringify({ sortOrder: "asc" })],
-      exact: true,
-    });
-  };
-
   if (isLoading) return <EmployeeListSkeleton />;
 
   if (error)

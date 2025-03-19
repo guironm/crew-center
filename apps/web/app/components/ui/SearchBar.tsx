@@ -23,7 +23,7 @@ export default function SearchBar({
 }: SearchBarProps) {
   // Initialize query from initial params or empty string
   const [query, setQuery] = useState(initialParams?.query || "");
-  
+
   // Add a ref for the search input
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -31,7 +31,13 @@ export default function SearchBar({
   const [filterValues, setFilterValues] = useState<Record<string, string>>(
     filters.reduce(
       (acc, filter) => {
-        acc[filter.name] = (initialParams as any)?.[filter.name] || "";
+        // Type-safe property access
+        acc[filter.name] =
+          filter.name in initialParams
+            ? String(
+                initialParams[filter.name as keyof typeof initialParams] || "",
+              )
+            : "";
         return acc;
       },
       {} as Record<string, string>,
@@ -48,8 +54,8 @@ export default function SearchBar({
       // Only trigger search if initialParams had some values we need to apply
       const hasInitialFilters = filters.some(
         (filter) =>
-          (initialParams as any)?.[filter.name] &&
-          (initialParams as any)?.[filter.name] !== "",
+          filter.name in initialParams &&
+          initialParams[filter.name as keyof typeof initialParams] !== "",
       );
 
       if (!hasInitialFilters && !initialParams?.query) {
@@ -72,13 +78,13 @@ export default function SearchBar({
       // Add filter values to search params
       filters.forEach((filter) => {
         // Always add the filter value, even if empty (so it's explicitly set to undefined rather than omitted)
-        (searchParams as any)[filter.name] =
-          filterValues[filter.name] || undefined;
+        const value = filterValues[filter.name] || undefined;
+        Object.assign(searchParams, { [filter.name]: value });
       });
 
       console.log("Sending search params:", searchParams);
       onSearch(searchParams);
-      
+
       // Keep focus on the search input after search is triggered
       if (searchInputRef.current) {
         searchInputRef.current.focus();
@@ -102,7 +108,7 @@ export default function SearchBar({
 
     // Reset to initial sortOrder
     onSearch({ sortOrder: initialParams.sortOrder || "asc" });
-    
+
     // Focus back on search input after reset
     if (searchInputRef.current) {
       searchInputRef.current.focus();

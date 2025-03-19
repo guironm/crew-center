@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ZodFilter } from './shared/filters';
 import { Logger } from '@nestjs/common';
+import { config } from './config/env';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -19,21 +20,23 @@ async function bootstrap() {
   app.useGlobalFilters(new ZodFilter());
   logger.log('Registered global ZodExceptionFilter');
 
-  const config = new DocumentBuilder()
+  const swaggerConfig = new DocumentBuilder()
     .setTitle('API')
     .setDescription('The Crew Center API')
     .setVersion('1.0')
     .addTag('API')
     .build();
 
-  const documentFactory = (): any => SwaggerModule.createDocument(app, config);
+  const documentFactory = (): any =>
+    SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api', app, documentFactory);
 
-  const port = process.env.PORT ?? 491;
-  await app.listen(port);
-  logger.log(`Application is running on: http://localhost:${port}`);
+  await app.listen(config.API_BASE_PORT, config.HOST);
   logger.log(
-    `Swagger documentation is available at: http://localhost:${port}/api`,
+    `Application is running on: http://${config.HOST}:${config.API_BASE_PORT}`,
+  );
+  logger.log(
+    `Swagger documentation is available at: http://${config.HOST}:${config.API_BASE_PORT}/api`,
   );
 }
 void bootstrap();

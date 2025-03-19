@@ -8,7 +8,6 @@ import {
   updateEmployeeSchema,
   UpdateEmployeeDto,
   departmentNameSchema,
-  DepartmentName,
   Employee,
 } from "@repo/schemas";
 
@@ -165,14 +164,16 @@ export default function EditEmployeeForm({
           id="salary"
           type="number"
           min="1"
-          {...register("salary", { 
+          {...register("salary", {
             valueAsNumber: true,
             required: "Salary is required",
-            min: { value: 1, message: "Salary must be greater than 0" }
+            min: { value: 1, message: "Salary must be greater than 0" },
           })}
           className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <p className="mt-1 text-xs text-gray-500">Enter a positive number (greater than 0)</p>
+        <p className="mt-1 text-xs text-gray-500">
+          Enter a positive number (greater than 0)
+        </p>
         {errors.salary && (
           <p className="mt-1 text-sm text-red-600">{errors.salary.message}</p>
         )}

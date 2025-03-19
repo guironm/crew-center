@@ -19,6 +19,9 @@ export class SearchService {
       return [];
     }
 
+    // Cast parameters with explicit typing at the start of the function
+    const safeParams = params as unknown as Record<string, unknown>;
+
     console.log('Search params received:', params);
     console.log('Text search fields:', textSearchFields);
 
@@ -43,19 +46,22 @@ export class SearchService {
     }
 
     // Apply filters for any additional fields in params
-    Object.keys(params).forEach((key) => {
+    Object.keys(safeParams).forEach((key) => {
       // Skip standard search params
       if (['query', 'sortBy', 'sortOrder'].includes(key)) {
         return;
       }
 
-      const filterValue = params[key];
+      const filterValue = safeParams[key];
       if (filterValue !== undefined && filterValue !== '') {
         console.log(`Applying filter for ${key}:`, filterValue);
         const beforeCount = results.length;
 
         results = results.filter((entity) => {
-          const entityValue = (entity as any)[key];
+          // Use type assertion with unknown as an intermediate step for type safety
+          const entityValue = (entity as unknown as Record<string, unknown>)[
+            key
+          ];
           console.log(
             `Comparing entity[${key}]:`,
             entityValue,
@@ -77,7 +83,7 @@ export class SearchService {
           }
 
           // Direct comparison for non-string values
-          return entityValue === filterValue;
+          return entityValue === (filterValue as unknown);
         });
 
         console.log(
@@ -87,9 +93,9 @@ export class SearchService {
     });
 
     // Apply sorting
-    if (params.sortBy) {
-      const sortOrder = params.sortOrder === 'desc' ? -1 : 1;
-      const sortField = params.sortBy as keyof T;
+    if (safeParams.sortBy) {
+      const sortOrder = (safeParams.sortOrder as string) === 'desc' ? -1 : 1;
+      const sortField = safeParams.sortBy as unknown as keyof T;
 
       results.sort((a, b) => {
         const valueA = a[sortField];
@@ -107,7 +113,7 @@ export class SearchService {
       });
 
       console.log(
-        `After sorting by ${params.sortBy}, results count: ${results.length}`,
+        `After sorting by ${typeof safeParams.sortBy === 'object' ? JSON.stringify(safeParams.sortBy) : String(safeParams.sortBy)}, results count: ${results.length}`,
       );
     }
 

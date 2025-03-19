@@ -6,7 +6,6 @@ import { Department } from './entities/department.entity';
 
 describe('DepartmentsController', () => {
   let controller: DepartmentsController;
-  let service: DepartmentsService;
 
   const mockDepartments: Department[] = [
     {
@@ -36,7 +35,6 @@ describe('DepartmentsController', () => {
     }).compile();
 
     controller = module.get<DepartmentsController>(DepartmentsController);
-    service = module.get<DepartmentsService>(DepartmentsService);
   });
 
   afterEach(() => {
@@ -72,12 +70,14 @@ describe('DepartmentsController', () => {
     it('should pass through exceptions from the service', () => {
       const departmentId = 999;
       mockDepartmentsService.findOne.mockImplementation(() => {
-        throw new NotFoundException(`Department with ID ${departmentId} not found`);
+        throw new NotFoundException(
+          `Department with ID ${departmentId} not found`,
+        );
       });
 
       expect(() => controller.findOne(departmentId)).toThrow(NotFoundException);
       expect(() => controller.findOne(departmentId)).toThrow(
-        `Department with ID ${departmentId} not found`
+        `Department with ID ${departmentId} not found`,
       );
       expect(mockDepartmentsService.findOne).toHaveBeenCalledWith(departmentId);
     });
@@ -87,7 +87,7 @@ describe('DepartmentsController', () => {
     it('should search departments with provided params', () => {
       const query = 'Engineering';
       const sortBy = 'name';
-      const sortOrder = 'asc' as const;
+      const sortOrder = 'asc';
 
       const searchParams = {
         query,
@@ -123,6 +123,8 @@ describe('DepartmentsController', () => {
       // Call without specifying sortOrder
       const result = controller.search('test', 'name', undefined);
 
+      console.log(result);
+
       // Should use 'asc' as default
       expect(mockDepartmentsService.find).toHaveBeenCalledWith({
         query: 'test',
@@ -131,4 +133,4 @@ describe('DepartmentsController', () => {
       });
     });
   });
-}); 
+});

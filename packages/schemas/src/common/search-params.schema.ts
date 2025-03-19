@@ -38,5 +38,5 @@ export type ApiSearchParams = {
   query?: string;
   sortBy?: string;
   sortOrder: "asc" | "desc";
-  [key: string]: any; // Allow for additional entity-specific filters
+  [key: string]: unknown; // Allow for additional entity-specific filters
 };

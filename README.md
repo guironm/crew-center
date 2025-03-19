@@ -78,21 +78,23 @@ Initialize **Turborepo** and setup configuration.
 - Integration with RandomUser API [done]
 - API documentation with Swagger [done]
 - CRUD operations for employees [done]
-- Search & filtering
+- Search & filtering [done]
 - Pagination
 - Entity definitions [done] (in memory)
 - Unit test [done]
 - Integration tests
+- TypeOrm
 
 #### Frontend Development
 
 - CRUD integration with backend using React Query and regular fetch [done]
-- Forms for creating and updating employees (just a button for delete) [done]
+- Forms [react hook form] for creating and updating employees (just a button for delete) [done]
 - avoid using context or state management since React Query was enough [done]
 - implment nextjs router [done]
-- Search & filtering
+- Search & filtering [done]
 - Pagination
 
 #### Common
 
 - Schemas & types (using zod) located in a common package used by both the web and api project [done]
+

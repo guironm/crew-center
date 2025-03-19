@@ -1,15 +1,16 @@
-const API_BASE_URL = "http://localhost:491";
-
 import {
   Employee,
   CreateEmployeeDto,
   UpdateEmployeeDto,
   ApiSearchParams,
 } from "@repo/schemas";
+import { config } from "../config/env";
+
+const API_URL = `${config.API_BASE_URL}:${config.API_BASE_PORT}`;
 
 export const employeeApi = {
   getAll: async (): Promise<Employee[]> => {
-    const response = await fetch(`${API_BASE_URL}/employees`);
+    const response = await fetch(`${API_URL}/employees`);
     if (!response.ok) {
       throw new Error(`Error fetching employees: ${response.status}`);
     }
@@ -42,14 +43,14 @@ export const employeeApi = {
 
     // Add all params directly to queryParams
     Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== "") {
+      if (value !== undefined && value !== null && value !== "") {
         console.log(`Adding param ${key}:`, value);
-        queryParams.append(key, value.toString());
+        queryParams.append(key, String(value));
       }
     });
 
     const queryString = queryParams.toString();
-    const url = `${API_BASE_URL}/employees/search${queryString ? `?${queryString}` : ""}`;
+    const url = `${API_URL}/employees/search${queryString ? `?${queryString}` : ""}`;
 
     console.log(`[${new Date().toISOString()}] Final search URL:`, url);
 
@@ -61,7 +62,7 @@ export const employeeApi = {
   },
 
   getById: async (id: string | number): Promise<Employee> => {
-    const response = await fetch(`${API_BASE_URL}/employees/${id}`);
+    const response = await fetch(`${API_URL}/employees/${id}`);
     if (!response.ok) {
       throw new Error(`Error fetching employee: ${response.status}`);
     }
@@ -69,7 +70,7 @@ export const employeeApi = {
   },
 
   create: async (data: CreateEmployeeDto): Promise<Employee> => {
-    const response = await fetch(`${API_BASE_URL}/employees`, {
+    const response = await fetch(`${API_URL}/employees`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -88,7 +89,7 @@ export const employeeApi = {
     id: string | number,
     data: UpdateEmployeeDto,
   ): Promise<Employee> => {
-    const response = await fetch(`${API_BASE_URL}/employees/${id}`, {
+    const response = await fetch(`${API_URL}/employees/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -104,7 +105,7 @@ export const employeeApi = {
   },
 
   delete: async (id: string | number): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/employees/${id}`, {
+    const response = await fetch(`${API_URL}/employees/${id}`, {
       method: "DELETE",
     });
 

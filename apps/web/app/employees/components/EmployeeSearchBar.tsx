@@ -1,6 +1,11 @@
 "use client";
 
-import { ApiSearchParams, EMPLOYEE_STATUSES, EmployeeStatus, departmentNameSchema } from "@repo/schemas";
+import {
+  ApiSearchParams,
+  EMPLOYEE_STATUSES,
+  EmployeeStatus,
+  departmentNameSchema,
+} from "@repo/schemas";
 import SearchBar from "../../components/ui/SearchBar";
 
 interface EmployeeSearchBarProps {
@@ -13,10 +18,12 @@ export default function EmployeeSearchBar({
   initialParams,
 }: EmployeeSearchBarProps) {
   // Get department options from the schema
-  const departmentOptions = Object.values(departmentNameSchema.enum).map((dept) => ({
-    value: dept,
-    label: dept,
-  }));
+  const departmentOptions = Object.values(departmentNameSchema.enum).map(
+    (dept) => ({
+      value: dept,
+      label: dept,
+    }),
+  );
 
   // Get status options from the schema
   const statusOptions = EMPLOYEE_STATUSES.map((status) => ({

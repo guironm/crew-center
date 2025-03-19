@@ -143,9 +143,9 @@ describe('EmployeesController', () => {
   describe('delete', () => {
     it('should delete an employee', () => {
       const employeeId = 1;
-      
+
       controller.delete(employeeId);
-      
+
       expect(mockEmployeesService.delete).toHaveBeenCalledWith(employeeId);
     });
   });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useDepartments, useSearchDepartments } from "../hooks/useDepartments";
+import { useSearchDepartments } from "../hooks/useDepartments";
 import { ApiSearchParams } from "@repo/schemas";
 import SearchBar from "../../components/ui/SearchBar";
 import DepartmentCard from "./DepartmentCard";
@@ -20,12 +20,12 @@ export default function DepartmentList() {
       value !== "",
   );
 
-  // Use the search hook if search params are provided, otherwise use the regular getAll hook
+  // Just use the search hook which can handle both empty and filled search params
   const {
     data: departments,
     isLoading,
     error,
-  } = isSearching ? useSearchDepartments(searchParams) : useDepartments();
+  } = useSearchDepartments(searchParams);
 
   const handleSearch = (params: ApiSearchParams) => {
     setSearchParams(params);
