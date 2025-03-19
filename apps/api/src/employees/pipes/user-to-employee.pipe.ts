@@ -3,6 +3,8 @@ import {
   DepartmentName,
   Employee,
   defaultRolesByDepartment,
+  EMPLOYEE_STATUSES,
+  EmployeeStatus,
 } from '@repo/schemas';
 import { RandomUser } from '../../users/schemas/random-user.schema';
 import { DepartmentsService } from '../../departments/departments.service';
@@ -33,10 +35,19 @@ export class UserToEmployeePipe implements PipeTransform<RandomUser, Employee> {
     // Generate a random salary between 60000 and 150000
     const salary = Math.floor(Math.random() * (150000 - 60000)) + 60000;
 
+    // Generate a random status
+    const randomStatusIndex = Math.floor(
+      Math.random() * EMPLOYEE_STATUSES.length,
+    );
+    // Use a default value to ensure we never have undefined
+    const randomStatus: EmployeeStatus =
+      EMPLOYEE_STATUSES[randomStatusIndex] || 'active';
+
     return {
       id: this.lastId,
       name: `${user.name.first} ${user.name.last}`,
       email: user.email,
+      status: randomStatus,
       role,
       department,
       salary,

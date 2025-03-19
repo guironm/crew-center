@@ -1,7 +1,13 @@
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { DepartmentsService } from './departments.service';
-import { Department } from './entities/department.entity';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import type { DepartmentResponseDto } from './entities/department.entity';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+} from '@nestjs/swagger';
 
 @ApiTags('departments')
 @Controller('departments')
@@ -10,23 +16,21 @@ export class DepartmentsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all departments' })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: 'Returns a list of all departments',
   })
-  findAll(): Department[] {
+  findAll(): DepartmentResponseDto[] {
     return this.departmentsService.findAll();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a department by ID' })
   @ApiParam({ name: 'id', description: 'Department ID' })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: 'Returns the department with the specified ID',
   })
-  @ApiResponse({ status: 404, description: 'Department not found' })
-  findOne(@Param('id', ParseIntPipe) id: number): Department | undefined {
+  @ApiNotFoundResponse({ description: 'Department not found' })
+  findOne(@Param('id', ParseIntPipe) id: number): DepartmentResponseDto {
     return this.departmentsService.findOne(id);
   }
 }

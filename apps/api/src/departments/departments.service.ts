@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Department } from './entities/department.entity';
 
 @Injectable()
 export class DepartmentsService {
-  private departments: Department[] = [
+  // Hardcoded list of departments
+  private readonly departments: Department[] = [
     {
       id: 1,
       name: 'Engineering',
@@ -41,14 +42,37 @@ export class DepartmentsService {
     },
   ];
 
+  /**
+   * Get all departments
+   * @returns List of all departments
+   */
   findAll(): Department[] {
     return this.departments;
   }
 
-  findOne(id: number): Department | undefined {
-    return this.departments.find((department) => department.id === id);
+  /**
+   * Find a department by ID
+   * @param id Department ID
+   * @returns Department if found
+   * @throws NotFoundException if department not found
+   */
+  findOne(id: number): Department {
+    const department = this.departments.find(
+      (department) => department.id === id,
+    );
+
+    if (!department) {
+      throw new NotFoundException(`Department with ID ${id} not found`);
+    }
+
+    return department;
   }
 
+  /**
+   * Find a department by name (case-insensitive)
+   * @param name Department name
+   * @returns Department if found, otherwise undefined
+   */
   findByName(name: string): Department | undefined {
     return this.departments.find(
       (department) => department.name.toLowerCase() === name.toLowerCase(),

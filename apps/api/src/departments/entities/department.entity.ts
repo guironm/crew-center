@@ -1,3 +1,8 @@
-import { Department } from '@repo/schemas';
+import {
+  Department,
+  DepartmentName,
+  DepartmentResponseDto,
+} from '@repo/schemas';
 
-export type { Department };
+// Re-export department types for easier consumption within API
+export type { Department, DepartmentName, DepartmentResponseDto };

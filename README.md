@@ -1,84 +1,90 @@
-# Turborepo starter
+# Crew Center - [employee directory assignment]
 
-This Turborepo starter is maintained by the Turborepo core team.
+This is my attempt to have an employee directory web app with Speedlane's suggested features.
 
-## Using this example
+I want to try and implement all of the features, and maybe add some more if I have time.
 
-Run the following command:
+## Suggested Features
 
-```sh
-npx create-turbo@latest
-```
+- Setup instructions and notes on how you built the application.
+- Use of a front end framework, ideally React.
+- Modern API, we commonly use Node in-house.
+- Ability to display employees by department, title, location, etc.
+- Use of a client-side router.
+- Creative use of animation.
+- Paginated lists.
+- Forms for creating, updating, and deleting employees.
+- Source data from a third party person API, such as [ramdomuser.me](https://randomuser.me) ~~or [uifaces](http://uifaces.com)~~.
+- Ability to search for employees.
+- Testing.
 
-## What's inside?
+## Brainstorming Session
 
-This Turborepo includes the following packages/apps:
+- I want to provide a solution in a short amount of time that's needs to be production ready.
+- It appears that it's preferable to use nodejs for the backend.
+- They are asking for Modern API, they also had a question about GraphQL during the interview. Should I risk trying to learn it or use something that I am more familiar with?
+- I am think of using React for the front end, win-win since I have been enjoying it and the requirements say that's the best option for this assignment.
+- Requirements also suggest focusing on one section either frontend or backend. What does a generalist do?
+- what should the repo structure / strategy be? if am going to use typescript everywhere, maybe i can benefit from a monorepo? there are no requirements for different tech stacks or microservices. monorepo can be faster given the my limited time. What are my options for a monorepo?
+- they want persistent storage (when creating new users)but also use source data from a third party API. Do i generate source data once then save in the project DB or do I get a new random source data everytime?
+- do i need state management? what do i go with?
+- do i use nextjs or something lighter? during the interview them mentioned that there might be legacy code, they are also asking for client side router,I am assuming they want me to write code for a router, so maybe they are not looking for a file-base routing, so not sure of the benefits of nextjs especially since im thinking of using nestjs for the backend.
+- catchy app name?
+- testing, anything similar to nUnit, xUnit?
+- do we need cqrs?
 
-### Apps and Packages
+## Resolution
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### App Name
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+**"Crew Center"**
 
-### Utilities
+(can also do a gimick on the homepage for **cc** like an email, since it's like an employee directory app)
 
-This Turborepo has some additional tools already setup for you:
+### Teck Stack
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+#### Frontend
 
-### Build
+- React ~~18 with Vite~~ nextjs (comes with turborepo)
+- TypeScript
+- TailwindCSS for styling
+- React Query for server state management
+- React Router v6 for routing
+- Zod for schema validation
+- testing ?
+- Framer Motion for animations (maybe)
+- React Hook Form for form handling (maybe)
 
-To build all apps and packages, run the following command:
+#### Backend
 
-```
-cd my-turborepo
-pnpm build
-```
+- NestJS (closest to a .net environment with SOLID principles etc)
+- TypeScript
+- Zod schema validation with Pipeline + filter ~~Class Validator & Class Transformer~~ (reusable on the frontend)
+- Jest for testing
+- Swagger for API documentation
+- TypeORM with PostgreSQL
+- Winston for logging (maybe)
+- Rate limiting & security middleware (maybe)
+- Docker for containerization (donno)
 
-### Develop
+### Plan
 
-To develop all apps and packages, run the following command:
+#### Project Setup
 
-```
-cd my-turborepo
-pnpm dev
-```
+Initialize **Turborepo** and setup configuration.
 
-### Remote Caching
+#### Backend Develepment
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+- Integration with RandomUser API [done]
+- API documentation with Swagger [done]
+- CRUD operations for employees [done]
+- Search & filtering
+- Pagination
+- Entity definitions [done] (in memory)
+- Unit test [done]
+- Integration tests
 
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+#### Common
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+- Schemas & types (using zod) located in a common package used by both the web and api project [done]
 
-```
-cd my-turborepo
-npx turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-npx turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
