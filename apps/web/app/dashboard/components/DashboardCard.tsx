@@ -12,20 +12,20 @@ export interface DashboardCardProps {
   imageSrc: string | StaticImageData;
 }
 
-export default function DashboardCard({ 
-  title, 
-  count, 
-  description, 
+export default function DashboardCard({
+  title,
+  count,
+  description,
   link,
-  imageSrc
+  imageSrc,
 }: DashboardCardProps) {
   return (
     <Link href={link} className="h-full">
       <div className="bg-white rounded-lg shadow-md p-0 hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer border-2 border-slate-300 flex flex-col h-[600px]">
         <div className="relative w-full h-4/5 rounded-t-lg overflow-hidden">
-          <Image 
-            src={imageSrc} 
-            alt={title} 
+          <Image
+            src={imageSrc}
+            alt={title}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -39,4 +39,4 @@ export default function DashboardCard({
       </div>
     </Link>
   );
-} 
+}

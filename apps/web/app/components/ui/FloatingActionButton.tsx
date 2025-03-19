@@ -1,17 +1,18 @@
 "use client";
 
-import { ReactNode, ButtonHTMLAttributes } from 'react';
+import { ReactNode, ButtonHTMLAttributes } from "react";
 
-interface FloatingActionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface FloatingActionButtonProps
+  extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon: ReactNode;
   onClick?: () => void;
 }
 
-export default function FloatingActionButton({ 
-  icon, 
+export default function FloatingActionButton({
+  icon,
   onClick,
-  className = '',
-  ...props 
+  className = "",
+  ...props
 }: FloatingActionButtonProps) {
   return (
     <button
@@ -22,4 +23,4 @@ export default function FloatingActionButton({
       {icon}
     </button>
   );
-} 
+}

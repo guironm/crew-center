@@ -1,13 +1,22 @@
-'use client';
+"use client";
 
-import { useParams, useRouter } from 'next/navigation';
-import { useEmployee, useDeleteEmployee } from '../hooks/useEmployees';
-import MainLayout from '../../layout/MainLayout';
-import { EnvelopeIcon, BuildingOfficeIcon, CurrencyDollarIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useParams, useRouter } from "next/navigation";
+import { useEmployee, useDeleteEmployee } from "../hooks/useEmployees";
+import MainLayout from "../../layout/MainLayout";
+import {
+  EnvelopeIcon,
+  BuildingOfficeIcon,
+  CurrencyDollarIcon,
+  PencilIcon,
+  TrashIcon,
+  ArrowLeftIcon,
+  CalendarIcon,
+  HashtagIcon,
+} from "@heroicons/react/24/outline";
 import Image from "next/image";
-import { useState } from 'react';
-import Modal from '../../components/ui/Modal';
-import EditEmployeeForm from '../components/EditEmployeeForm';
+import { useState } from "react";
+import Modal from "../../components/ui/Modal";
+import EditEmployeeForm from "../components/EditEmployeeForm";
 
 export default function EmployeeDetailPage() {
   const params = useParams();
@@ -15,11 +24,15 @@ export default function EmployeeDetailPage() {
   const id = params.id as string;
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  
+
   // Use the employee hook with specific caching options for this page
-  const { data: employee, isLoading, error } = useEmployee(id, {
+  const {
+    data: employee,
+    isLoading,
+    error,
+  } = useEmployee(id, {
     // Override default caching - keep this data fresh for just 1 minute
-    staleTime: 60 * 1000
+    staleTime: 60 * 1000,
   });
 
   // Use delete employee hook
@@ -42,21 +55,29 @@ export default function EmployeeDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (confirm('Are you sure you want to delete this employee? This action cannot be undone.')) {
+    if (
+      confirm(
+        "Are you sure you want to delete this employee? This action cannot be undone.",
+      )
+    ) {
       setIsDeleting(true);
       try {
         await deleteMutation.mutateAsync(id);
         // Navigate back to employees list after successful deletion
-        router.push('/employees');
+        router.push("/employees");
       } catch (error) {
-        console.error('Error deleting employee:', error);
+        console.error("Error deleting employee:", error);
         setIsDeleting(false);
-        alert(`Failed to delete employee: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        alert(
+          `Failed to delete employee: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }
   };
 
-  {/* ddnt feel like using a skeleton loader, so here's a simple one */}
+  {
+    /* ddnt feel like using a skeleton loader, so here's a simple one */
+  }
   if (isLoading) {
     return (
       <MainLayout>
@@ -85,18 +106,15 @@ export default function EmployeeDetailPage() {
       <MainLayout>
         <div className="container mx-auto px-4 py-8">
           <div className="bg-red-50 text-rose-600 p-4 rounded-lg mb-4">
-            {error instanceof Error && error.message.includes('404') 
-              ? 'Employee not found. The requested employee ID does not exist in the database.'
-              : `Error loading employee: ${error instanceof Error ? error.message : 'Employee not found'}`
-            }
+            {error instanceof Error && error.message.includes("404")
+              ? "Employee not found. The requested employee ID does not exist in the database."
+              : `Error loading employee: ${error instanceof Error ? error.message : "Employee not found"}`}
           </div>
           <button
             onClick={handleBack}
             className="flex items-center text-slate-600 hover:text-slate-800"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
-            </svg>
+            <ArrowLeftIcon className="h-5 w-5 mr-1" />
             Back to Employees
           </button>
         </div>
@@ -112,12 +130,12 @@ export default function EmployeeDetailPage() {
             onClick={handleBack}
             className="flex items-center text-slate-600 hover:text-slate-800 mr-4"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
-            </svg>
+            <ArrowLeftIcon className="h-5 w-5 mr-1" />
             Back
           </button>
-          <h1 className="text-2xl font-bold text-slate-800">Employee Profile</h1>
+          <h1 className="text-2xl font-bold text-slate-800">
+            Employee Profile
+          </h1>
         </div>
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -134,20 +152,28 @@ export default function EmployeeDetailPage() {
                     />
                   ) : (
                     <div className="w-32 h-32 rounded-full bg-blue-100 text-sky-600 flex items-center justify-center">
-                      <span className="font-bold text-4xl">{employee.name.charAt(0)}</span>
+                      <span className="font-bold text-4xl">
+                        {employee.name.charAt(0)}
+                      </span>
                     </div>
                   )}
                 </div>
-                <h2 className="text-xl font-semibold text-slate-800">{employee.name}</h2>
+                <h2 className="text-xl font-semibold text-slate-800">
+                  {employee.name}
+                </h2>
                 <p className="text-slate-600 mb-2">{employee.role}</p>
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  employee.status === 'active' ? 'bg-green-100 text-green-800' :
-                  employee.status === 'on_leave' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-red-100 text-rose-800'
-                }`}>
-                  {employee.status.replace('_', ' ')}
+                <span
+                  className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                    employee.status === "active"
+                      ? "bg-green-100 text-green-800"
+                      : employee.status === "on_leave"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-rose-800"
+                  }`}
+                >
+                  {employee.status.replace("_", " ")}
                 </span>
-                
+
                 <div className="mt-6 flex space-x-3">
                   <button
                     onClick={handleEdit}
@@ -156,7 +182,7 @@ export default function EmployeeDetailPage() {
                     <PencilIcon className="h-4 w-4 mr-2" />
                     Edit
                   </button>
-                  
+
                   <button
                     onClick={handleDelete}
                     disabled={isDeleting}
@@ -168,11 +194,13 @@ export default function EmployeeDetailPage() {
                 </div>
               </div>
             </div>
-            
+
             <div className="md:w-2/3 p-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-md font-medium text-slate-700 mb-4">Contact Information</h3>
+                  <h3 className="text-md font-medium text-slate-700 mb-4">
+                    Contact Information
+                  </h3>
                   <div className="space-y-3">
                     <div className="flex items-center">
                       <EnvelopeIcon className="w-5 h-5 mr-2 text-slate-500" />
@@ -184,26 +212,26 @@ export default function EmployeeDetailPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div>
-                  <h3 className="text-md font-medium text-slate-700 mb-4">Employment Details</h3>
+                  <h3 className="text-md font-medium text-slate-700 mb-4">
+                    Employment Details
+                  </h3>
                   <div className="space-y-3">
                     <div className="flex items-center">
                       <CurrencyDollarIcon className="w-5 h-5 mr-2 text-slate-500" />
                       <span>${employee.salary.toLocaleString()}</span>
                     </div>
                     <div className="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
+                      <CalendarIcon className="w-5 h-5 mr-2 text-slate-500" />
                       <span>
-                        {employee.hireDate ? new Date(employee.hireDate).toLocaleDateString() : 'Not available'}
+                        {employee.hireDate
+                          ? new Date(employee.hireDate).toLocaleDateString()
+                          : "Not available"}
                       </span>
                     </div>
                     <div className="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                      </svg>
+                      <HashtagIcon className="w-5 h-5 mr-2 text-slate-500" />
                       <span>ID: {employee.id}</span>
                     </div>
                   </div>
@@ -215,18 +243,15 @@ export default function EmployeeDetailPage() {
 
         {/* Edit Employee Modal */}
         {employee && (
-          <Modal 
-            isOpen={isEditModalOpen} 
-            onClose={closeEditModal} 
+          <Modal
+            isOpen={isEditModalOpen}
+            onClose={closeEditModal}
             title="Edit Employee"
           >
-            <EditEmployeeForm 
-              employee={employee} 
-              onSuccess={closeEditModal} 
-            />
+            <EditEmployeeForm employee={employee} onSuccess={closeEditModal} />
           </Modal>
         )}
       </div>
     </MainLayout>
   );
-} 
+}

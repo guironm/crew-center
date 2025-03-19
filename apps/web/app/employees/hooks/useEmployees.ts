@@ -1,30 +1,47 @@
-'use client';
+"use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { employeeApi } from '../../api/employeeApi';
-import { CreateEmployeeDto, UpdateEmployeeDto } from '@repo/schemas';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { employeeApi } from "../../api/employeeApi";
+import { UpdateEmployeeDto, ApiSearchParams } from "@repo/schemas";
+import { useSearch } from "../../hooks/useSearch";
 
 export function useEmployees(options = {}) {
   return useQuery({
-    queryKey: ['employees'],
+    queryKey: ["employees"],
     queryFn: employeeApi.getAll,
     staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep data in cache for 10 minutes (garbage collection time)
-    refetchOnWindowFocus: true, 
-    refetchOnMount: true, 
-    ...options
+    gcTime: 10 * 60 * 1000, // Keep data in cache for 10 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    ...options,
+  });
+}
+
+/**
+ * Hook for searching employees with various filters
+ * @param params Search parameters
+ * @param options React Query options
+ * @returns Query result with filtered employees
+ */
+export function useSearchEmployees(params: ApiSearchParams, options = {}) {
+  return useSearch("employees", employeeApi.search, params, {
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    ...options,
   });
 }
 
 export function useEmployee(id: string | number, options = {}) {
   return useQuery({
-    queryKey: ['employee', id],
+    queryKey: ["employee", id],
     queryFn: () => employeeApi.getById(id),
     staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
     gcTime: 10 * 60 * 1000, // Keep data in cache for 10 minutes
-    refetchOnWindowFocus: false, 
+    refetchOnWindowFocus: false,
     enabled: !!id,
-    ...options
+    ...options,
   });
 }
 
@@ -34,13 +51,16 @@ export function useEmployee(id: string | number, options = {}) {
  */
 export function useCreateEmployee() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: employeeApi.create,
     onSuccess: () => {
-      // Invalidate employees query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-    }
+      // Invalidate everything related to employees with a single call
+      queryClient.invalidateQueries({
+        queryKey: ["employees"],
+        refetchType: "all"
+      });
+    },
   });
 }
 
@@ -51,14 +71,16 @@ export function useCreateEmployee() {
  */
 export function useUpdateEmployee(id: string | number) {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: UpdateEmployeeDto) => employeeApi.update(id, data),
     onSuccess: () => {
-      // Invalidate both employees list and this specific employee
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-      queryClient.invalidateQueries({ queryKey: ['employee', id.toString()] });
-    }
+      // Invalidate everything related to employees with a single call
+      queryClient.invalidateQueries({
+        queryKey: ["employees"],
+        refetchType: "all"
+      });
+    },
   });
 }
 
@@ -68,12 +90,15 @@ export function useUpdateEmployee(id: string | number) {
  */
 export function useDeleteEmployee() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: employeeApi.delete,
     onSuccess: () => {
-      // Invalidate employees query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-    }
+      // Invalidate everything related to employees with a single call
+      queryClient.invalidateQueries({
+        queryKey: ["employees"],
+        refetchType: "all"
+      });
+    },
   });
-} 
+}

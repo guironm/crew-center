@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Department } from './entities/department.entity';
+import { SearchService } from '../search/search.service';
+import { ApiSearchParams } from '@repo/schemas';
 
 @Injectable()
 export class DepartmentsService {
@@ -42,6 +44,8 @@ export class DepartmentsService {
     },
   ];
 
+  constructor(private readonly searchService: SearchService) {}
+
   /**
    * Get all departments
    * @returns List of all departments
@@ -76,6 +80,19 @@ export class DepartmentsService {
   findByName(name: string): Department | undefined {
     return this.departments.find(
       (department) => department.name.toLowerCase() === name.toLowerCase(),
+    );
+  }
+
+  /**
+   * Find departments based on search parameters
+   * @param searchParams Search parameters for filtering
+   * @returns Filtered list of departments
+   */
+  find(searchParams: ApiSearchParams): Department[] {
+    return this.searchService.search(
+      this.departments,
+      searchParams,
+      ['name', 'description'], // Fields to search when query is provided
     );
   }
 }

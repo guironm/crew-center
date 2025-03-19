@@ -9,9 +9,11 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import type {
+  ApiSearchParams,
   CreateEmployeeDto,
   Employee,
   EmployeeResponseDto,
@@ -27,6 +29,7 @@ import {
   ApiNotFoundResponse,
   ApiConflictResponse,
   ApiOkResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import {
   createEmployeeSchema,
@@ -35,10 +38,73 @@ import {
 } from '@repo/schemas';
 import { ZodPipe } from '../shared/pipes';
 
+// Define local search params interface for simplicity
+interface EmployeeSearchParams {
+  query?: string;
+  department?: string;
+  status?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
 @ApiTags('employees')
 @Controller('employees')
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
+
+  @Get('search')
+  @ApiOperation({ summary: 'Search for employees' })
+  @ApiQuery({
+    name: 'query',
+    required: false,
+    description: 'Search query for name, email, or role',
+  })
+  @ApiQuery({
+    name: 'department',
+    required: false,
+    description: 'Filter by department',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    description: 'Filter by status',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    description: 'Field to sort by',
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    enum: ['asc', 'desc'],
+    description: 'Sort order',
+  })
+  @ApiOkResponse({
+    description: 'Returns employees matching the search criteria',
+  })
+  async search(
+    @Query('query') query?: string,
+    @Query('department') department?: string,
+    @Query('status') status?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder: 'asc' | 'desc' = 'asc',
+  ): Promise<EmployeeResponseDto[]> {
+    const searchParams = {
+      query,
+      department,
+      status,
+      sortBy,
+      sortOrder,
+    };
+
+    console.log('Received search params:', searchParams);
+
+    // Use the find method which delegates to the search service
+    const employees = await this.employeesService.find(searchParams);
+
+    return employees.map((employee) => this.convertToResponseDto(employee));
+  }
 
   @Get()
   @ApiOperation({ summary: 'Get all employees' })

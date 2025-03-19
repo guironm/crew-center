@@ -24,7 +24,9 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
             />
           ) : (
             <div className="w-18 h-18 rounded-full bg-blue-100 text-sky-600 flex items-center justify-center mr-4">
-              <span className="font-bold text-xl">{employee.name.charAt(0)}</span>
+              <span className="font-bold text-xl">
+                {employee.name.charAt(0)}
+              </span>
             </div>
           )}
           <div>
@@ -46,4 +48,4 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
       </div>
     </Link>
   );
-} 
+}

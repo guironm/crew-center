@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmployeesController } from './employees.controller';
 import { EmployeesService } from './employees.service';
-import { Employee, CreateEmployeeDto } from '@repo/schemas';
+import { Employee, CreateEmployeeDto, UpdateEmployeeDto } from '@repo/schemas';
 
 describe('EmployeesController', () => {
   let controller: EmployeesController;
@@ -37,6 +37,7 @@ describe('EmployeesController', () => {
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    find: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -108,6 +109,104 @@ describe('EmployeesController', () => {
       expect(mockEmployeesService.create).toHaveBeenCalledWith(
         createEmployeeDto,
       );
+    });
+  });
+
+  describe('update', () => {
+    it('should update an employee', () => {
+      const employeeId = 1;
+      const updateEmployeeDto: UpdateEmployeeDto = {
+        name: 'Updated Name',
+        salary: 100000,
+      };
+
+      const updatedEmployee = {
+        ...mockEmployees[0],
+        name: 'Updated Name',
+        salary: 100000,
+      };
+
+      mockEmployeesService.update.mockReturnValue(updatedEmployee);
+
+      const result = controller.update(employeeId, updateEmployeeDto);
+
+      expect(result).toBeDefined();
+      expect(result.name).toBe(updateEmployeeDto.name);
+      expect(result.salary).toBe(updateEmployeeDto.salary);
+      expect(mockEmployeesService.update).toHaveBeenCalledWith(
+        employeeId,
+        updateEmployeeDto,
+      );
+    });
+  });
+
+  describe('delete', () => {
+    it('should delete an employee', () => {
+      const employeeId = 1;
+      
+      controller.delete(employeeId);
+      
+      expect(mockEmployeesService.delete).toHaveBeenCalledWith(employeeId);
+    });
+  });
+
+  describe('search', () => {
+    it('should search employees with query params', async () => {
+      const searchParams = {
+        query: 'John',
+        department: 'Engineering',
+        status: 'active',
+        sortBy: 'name',
+        sortOrder: 'asc' as const,
+      };
+
+      // Mock the find method to return filtered employees
+      mockEmployeesService.find.mockResolvedValue([mockEmployees[0]]);
+
+      const result = await controller.search(
+        searchParams.query,
+        searchParams.department,
+        searchParams.status,
+        searchParams.sortBy,
+        searchParams.sortOrder,
+      );
+
+      expect(result).toBeDefined();
+      expect(result.length).toBe(1);
+      expect(result[0]?.name).toBe('John Doe');
+      expect(mockEmployeesService.find).toHaveBeenCalledWith(searchParams);
+    });
+
+    it('should handle empty search params', async () => {
+      // When no params are provided, should use default sortOrder
+      mockEmployeesService.find.mockResolvedValue(mockEmployees);
+
+      const result = await controller.search(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'asc',
+      );
+
+      expect(result).toBeDefined();
+      expect(result.length).toBe(2);
+      expect(mockEmployeesService.find).toHaveBeenCalledWith({
+        sortOrder: 'asc',
+      });
+    });
+
+    it('should search with a query parameter', async () => {
+      // Mock a search with just a query parameter
+      mockEmployeesService.find.mockResolvedValue([mockEmployees[0]]);
+
+      await controller.search('John', undefined, undefined, undefined, 'asc');
+
+      // Verify the service was called with the right parameters
+      expect(mockEmployeesService.find).toHaveBeenCalledWith({
+        query: 'John',
+        sortOrder: 'asc',
+      });
     });
   });
 });

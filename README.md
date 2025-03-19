@@ -48,8 +48,8 @@ I want to try and implement all of the features, and maybe add some more if I ha
 - React ~~18 with Vite~~ nextjs (comes with turborepo)
 - TypeScript
 - TailwindCSS for styling
-- React Query for server state management
-- React Router v6 for routing
+- React Query for server state management [done]
+- nextjs app router..🤷 ~~React Router v6 for routing~~
 - Zod for schema validation
 - testing ?
 - Framer Motion for animations (maybe)
@@ -84,7 +84,15 @@ Initialize **Turborepo** and setup configuration.
 - Unit test [done]
 - Integration tests
 
+#### Frontend Development
+
+- CRUD integration with backend using React Query and regular fetch [done]
+- Forms for creating and updating employees (just a button for delete) [done]
+- avoid using context or state management since React Query was enough [done]
+- implment nextjs router [done]
+- Search & filtering
+- Pagination
+
 #### Common
 
 - Schemas & types (using zod) located in a common package used by both the web and api project [done]
-

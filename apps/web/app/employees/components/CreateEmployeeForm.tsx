@@ -4,13 +4,20 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateEmployee } from "../hooks/useEmployees";
-import { createEmployeeSchema, CreateEmployeeDto, departmentNameSchema, DepartmentName } from "@repo/schemas";
+import {
+  createEmployeeSchema,
+  CreateEmployeeDto,
+  departmentNameSchema,
+  DepartmentName,
+} from "@repo/schemas";
 
 interface CreateEmployeeFormProps {
   onSuccess?: () => void;
 }
 
-export default function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProps) {
+export default function CreateEmployeeForm({
+  onSuccess,
+}: CreateEmployeeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const createMutation = useCreateEmployee();
 
@@ -27,7 +34,7 @@ export default function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProp
       email: "",
       role: "",
       department: "Engineering" as DepartmentName,
-      salary: 0,
+      salary: 50000,
       status: "active",
     },
   });
@@ -52,7 +59,10 @@ export default function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProp
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-slate-700 mb-1"
+        >
           Full Name
         </label>
         <input
@@ -67,7 +77,10 @@ export default function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProp
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
+        <label
+          htmlFor="email"
+          className="block text-sm font-medium text-slate-700 mb-1"
+        >
           Email Address
         </label>
         <input
@@ -82,7 +95,10 @@ export default function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProp
       </div>
 
       <div>
-        <label htmlFor="role" className="block text-sm font-medium text-slate-700 mb-1">
+        <label
+          htmlFor="role"
+          className="block text-sm font-medium text-slate-700 mb-1"
+        >
           Role
         </label>
         <input
@@ -97,7 +113,10 @@ export default function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProp
       </div>
 
       <div>
-        <label htmlFor="department" className="block text-sm font-medium text-slate-700 mb-1">
+        <label
+          htmlFor="department"
+          className="block text-sm font-medium text-slate-700 mb-1"
+        >
           Department
         </label>
         <select
@@ -112,22 +131,31 @@ export default function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProp
           ))}
         </select>
         {errors.department && (
-          <p className="mt-1 text-sm text-red-600">{errors.department.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.department.message}
+          </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="salary" className="block text-sm font-medium text-slate-700 mb-1">
+        <label
+          htmlFor="salary"
+          className="block text-sm font-medium text-slate-700 mb-1"
+        >
           Salary
         </label>
         <input
           id="salary"
           type="number"
-          min="0"
-          step="1000"
-          {...register("salary", { valueAsNumber: true })}
+          min="1"
+          {...register("salary", { 
+            valueAsNumber: true,
+            required: "Salary is required",
+            min: { value: 1, message: "Salary must be greater than 0" }
+          })}
           className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+        <p className="mt-1 text-xs text-gray-500">Enter a positive number (greater than 0)</p>
         {errors.salary && (
           <p className="mt-1 text-sm text-red-600">{errors.salary.message}</p>
         )}
@@ -144,4 +172,4 @@ export default function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProp
       </div>
     </form>
   );
-} 
+}

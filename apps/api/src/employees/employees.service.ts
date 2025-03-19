@@ -4,11 +4,13 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { SearchService } from '../search/search.service';
 import {
   Employee,
   CreateEmployeeDto,
   UpdateEmployeeDto,
   ValidationMessages,
+  ApiSearchParams,
 } from '@repo/schemas';
 import { UserToEmployeePipe } from './pipes/user-to-employee.pipe';
 
@@ -16,13 +18,14 @@ import { UserToEmployeePipe } from './pipes/user-to-employee.pipe';
 export class EmployeesService {
   // Store employees fetched from the API
   private employees: Employee[] = [];
-  
+
   // Track the next available ID
   private nextId = 1;
 
   constructor(
     private readonly usersService: UsersService,
     private readonly userToEmployeePipe: UserToEmployeePipe,
+    private readonly searchService: SearchService,
   ) {}
 
   async findAll(): Promise<Employee[]> {
@@ -32,9 +35,9 @@ export class EmployeesService {
         // Get random users and convert them to employees using the pipe
         const randomUsers = await this.usersService.getRandomUsers(8);
         const newEmployees = randomUsers.map((user) =>
-          this.userToEmployeePipe.transform(user)
+          this.userToEmployeePipe.transform(user),
         );
-        
+
         // Store these in our employees array so they can be accessed individually
         this.employees.push(...newEmployees);
       } catch (error) {
@@ -135,5 +138,24 @@ export class EmployeesService {
     }
 
     this.employees.splice(index, 1);
+  }
+
+  /**
+   * Find employees based on search parameters
+   * @param searchParams Search parameters for filtering
+   * @returns Filtered list of employees
+   */
+  async find(searchParams: ApiSearchParams): Promise<Employee[]> {
+    // Make sure employees are loaded first
+    if (this.employees.length === 0) {
+      await this.findAll();
+    }
+
+    // Use search service to filter employees
+    return this.searchService.search(
+      this.employees,
+      searchParams,
+      ['name', 'email', 'role'], // Fields to search when query is provided
+    );
   }
 }

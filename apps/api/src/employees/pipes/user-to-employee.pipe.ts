@@ -7,13 +7,10 @@ import {
   EmployeeStatus,
 } from '@repo/schemas';
 import { RandomUser } from '../../users/schemas/random-user.schema';
-import { DepartmentsService } from '../../departments/departments.service';
 
 @Injectable()
 export class UserToEmployeePipe implements PipeTransform<RandomUser, Employee> {
-  private lastId = 3; // Starting after our static employees
-
-  constructor(private readonly departmentsService: DepartmentsService) {}
+  private lastId = 1; // Starting after our static employees
 
   transform(user: RandomUser): Employee {
     // Increment ID for each transformation

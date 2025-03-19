@@ -10,7 +10,12 @@ interface ModalProps {
   children: ReactNode;
 }
 
-export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+}: ModalProps) {
   // Close modal when Escape key is pressed
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -57,4 +62,4 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
       </div>
     </div>
   );
-} 
+}

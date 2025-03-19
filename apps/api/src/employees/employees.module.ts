@@ -2,14 +2,13 @@ import { Module } from '@nestjs/common';
 import { EmployeesController } from './employees.controller';
 import { EmployeesService } from './employees.service';
 import { UsersModule } from '../users/users.module';
-import { DepartmentsModule } from '../departments/departments.module';
 import { UserToEmployeePipe } from './pipes/user-to-employee.pipe';
-import { SharedModule } from '../shared/shared.module';
+import { SearchService } from '../search/search.service';
 
 @Module({
-  imports: [UsersModule, DepartmentsModule, SharedModule],
+  imports: [UsersModule],
   controllers: [EmployeesController],
-  providers: [EmployeesService, UserToEmployeePipe],
+  providers: [EmployeesService, UserToEmployeePipe, SearchService],
   exports: [EmployeesService],
 })
 export class EmployeesModule {}
