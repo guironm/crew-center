@@ -5,7 +5,6 @@ import { Employee, CreateEmployeeDto } from '@repo/schemas';
 
 describe('EmployeesController', () => {
   let controller: EmployeesController;
-  let service: EmployeesService;
 
   // Create mock employees
   const mockEmployees: Employee[] = [
@@ -49,7 +48,6 @@ describe('EmployeesController', () => {
     }).compile();
 
     controller = module.get<EmployeesController>(EmployeesController);
-    service = module.get<EmployeesService>(EmployeesService);
   });
 
   afterEach(() => {

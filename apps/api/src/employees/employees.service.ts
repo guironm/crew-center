@@ -14,42 +14,11 @@ import { UserToEmployeePipe } from './pipes/user-to-employee.pipe';
 
 @Injectable()
 export class EmployeesService {
-  // Sample static employees data
-  private employees: Employee[] = [
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john.doe@company.com',
-      role: 'Software Engineer',
-      department: 'Engineering',
-      salary: 95000,
-      status: 'active',
-      hireDate: new Date('2021-01-15'),
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane.smith@company.com',
-      role: 'Product Manager',
-      department: 'Product',
-      salary: 110000,
-      status: 'active',
-      hireDate: new Date('2020-08-10'),
-    },
-    {
-      id: 3,
-      name: 'Bob Johnson',
-      email: 'bob.johnson@company.com',
-      role: 'UX Designer',
-      department: 'Design',
-      salary: 90000,
-      status: 'active',
-      hireDate: new Date('2022-03-22'),
-    },
-  ];
-
+  // Store employees fetched from the API
+  private employees: Employee[] = [];
+  
   // Track the next available ID
-  private nextId = 4;
+  private nextId = 1;
 
   constructor(
     private readonly usersService: UsersService,
@@ -57,22 +26,24 @@ export class EmployeesService {
   ) {}
 
   async findAll(): Promise<Employee[]> {
-    // Get existing employees
-    const existingEmployees = [...this.employees];
-
-    // Get additional random users and convert them to employees using the pipe
-    try {
-      const randomUsers = await this.usersService.getRandomUsers(5);
-      const additionalEmployees = randomUsers.map((user) =>
-        this.userToEmployeePipe.transform(user),
-      );
-
-      // Combine existing employees with new ones generated from random users
-      return [...existingEmployees, ...additionalEmployees];
-    } catch {
-      // If there's an error fetching random users, just return existing employees
-      return existingEmployees;
+    // If we haven't already added employees, fetch them
+    if (this.employees.length === 0) {
+      try {
+        // Get random users and convert them to employees using the pipe
+        const randomUsers = await this.usersService.getRandomUsers(8);
+        const newEmployees = randomUsers.map((user) =>
+          this.userToEmployeePipe.transform(user)
+        );
+        
+        // Store these in our employees array so they can be accessed individually
+        this.employees.push(...newEmployees);
+      } catch (error) {
+        console.error('Failed to fetch random users:', error);
+      }
     }
+
+    // Return all employees
+    return this.employees;
   }
 
   findOne(id: number): Employee {

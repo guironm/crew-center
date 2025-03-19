@@ -1,10 +1,5 @@
-import EmployeeList from "./components/EmployeeList";
-import MainLayout from "./layout/MainLayout";
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-  return (
-    <MainLayout>
-      <EmployeeList />
-    </MainLayout>
-  );
+  redirect('/dashboard');
 }
