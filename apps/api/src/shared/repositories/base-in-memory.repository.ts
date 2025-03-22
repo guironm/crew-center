@@ -41,6 +41,35 @@ export abstract class BaseInMemoryRepository<T, ID, CreateDTO, UpdateDTO>
   }
 
   /**
+   * Count all entities
+   */
+  async count(): Promise<number> {
+    return this.items.length;
+  }
+
+  /**
+   * Count entities with filtering
+   */
+  async countWithFilter(filters?: Partial<Record<keyof T, any>>): Promise<number> {
+    if (!filters) {
+      return this.count();
+    }
+
+    // Apply filters
+    const filtered = this.items.filter((item) => {
+      return Object.entries(filters).every(([key, value]) => {
+        // Skip undefined values
+        if (value === undefined) return true;
+        
+        // Handle exact match
+        return item[key as keyof T] === value;
+      });
+    });
+
+    return filtered.length;
+  }
+
+  /**
    * Create a new entity
    */
   async create(createDto: CreateDTO): Promise<T> {

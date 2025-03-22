@@ -144,7 +144,7 @@ I need to read up and experiment more with server actions, ssr and all of the ne
 - nextjs app router..🤷 ~~React Router v6 for routing~~
 - Zod for schema validation
 - testing ?
-- Framer Motion for animations (maybe)
+- Framer Motion for animations (maybe) [done]
 - React Hook Form for form handling [done]
 
 #### Backend
@@ -171,8 +171,8 @@ Initialize **Turborepo** and setup configuration.
 - API documentation with Swagger [done]
 - CRUD operations for employees [done]
 - Search & filtering [done]
-- Pagination
-- Entity definitions [done] (in memory)
+- Pagination [done]
+- Entity definitions [done]
 - Unit test [done]
 - Integration tests
 - TypeOrm [done]
@@ -184,38 +184,63 @@ Initialize **Turborepo** and setup configuration.
 - avoid using context or state management since React Query was enough [done]
 - implement nextjs router [done]
 - Search & filtering [done]
-- Pagination
+- Pagination [done]
 
 #### Common
 
-- Schemas & types (using zod) located in a common package used by both the web and api project [done]
+- Schemas and types (using Zod) are located in a common package shared by both the web and API projects. [done]
 
 ### Design choices
 
 #### API
 
-- **Users**: was not sure if this will be used, for now exposed an endpoint to get random users.
-  the users service can work with different random users providers
+- **Users**: I was uncertain if this would be used; for now, an endpoint to retrieve random users is exposed. The users service can work with different random user providers.
 - **Employees**:
-  handles employee crud operations
+  Handles employee CRUD operations.
 - **Departments**
-  handles departments crud operations
+  Handles department CRUD operations.
 
 **schema**
-shared zod schema and infered types. DIfferent DTOs for incoming and outgoing data.
+Shared Zod schema and inferred types. Different DTOs are used for incoming and outgoing data.
 
 **validation pipe**
-validates incoming DTOs
+Validates incoming DTOs.
 
 **custom exception filter**
-handles zod validation exceptions
+Handles Zod validation exceptions.
 
-The service layer accepts DTOs since we do not have rich domain objects that would warrant a conversion between controller and services layers.
+The service layer accepts DTOs since there are no rich domain objects that would require conversion between the controller and service layers.
 
 **Repository Pattern**
-supports: in memory and typeORM versions.
-migration is not setup DO NOT USE **synchronization = true** in production
+Supports both in memory and typeORM versions.
+Migration is not setup DO NOT USE **synchronization = true** in production
 
 **initial seeding**
 Employees: initial seeding count = 50
 Departments: initial seeding 7 departments
+
+
+**Patterns / Principles**
+The code uses DRY and SOLID principles wherever possible, i am not sure it was the best option. Mainly used it to handle pagination instead of more abstraction and DI.
+
+#### Web
+
+- Best practices were followed as much as possible.
+
+- React Query was experimented with (needs more work to be fully optimized).
+
+- Axios was used.
+
+- Search and pagination were implemented.
+
+- Subtle animations were added.
+
+- Next.js Image component was used (could be further optimized).
+
+- No tests were implemented on the front end.
+
+- More ErrorBoundary placements could be beneficial.
+
+
+**NB**: did not fully configure **env**  properly. not production ready
+

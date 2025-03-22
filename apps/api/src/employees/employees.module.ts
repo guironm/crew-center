@@ -14,6 +14,9 @@ import { EmployeeEntity } from './entities/employee.entity';
 import { env } from '../config/env';
 import { EmployeeEntityMapper } from './mappers/employee-entity.mapper';
 import { DepartmentsModule } from '../departments/departments.module';
+import { PaginatedEmployeeQueryBuilder } from './services/paginated-query-builder.service';
+import { PaginatedEmployeeRepository } from './repositories/paginated-employee-repository';
+import { PaginatedEmployeesService } from './services/paginated-employees.service';
 
 @Module({
   imports: [
@@ -29,6 +32,9 @@ import { DepartmentsModule } from '../departments/departments.module';
     EmployeeSeederService,
     EmployeeQueryBuilderService,
     EmployeeEntityMapper,
+    PaginatedEmployeeQueryBuilder,
+    PaginatedEmployeeRepository,
+    PaginatedEmployeesService,
     {
       provide: EMPLOYEE_REPOSITORY,
       useClass: env.USE_DATABASE
@@ -36,6 +42,6 @@ import { DepartmentsModule } from '../departments/departments.module';
         : InMemoryEmployeeRepository,
     },
   ],
-  exports: [EmployeesService],
+  exports: [EmployeesService, PaginatedEmployeesService],
 })
 export class EmployeesModule {}

@@ -74,11 +74,20 @@ export function useUpdateEmployee(id: string | number) {
 
   return useMutation({
     mutationFn: (data: UpdateEmployeeDto) => employeeApi.update(id, data),
-    onSuccess: () => {
-      // Invalidate everything related to employees with a single call
+    onSuccess: (updatedEmployee) => {
+      // Specifically invalidate the individual employee cache entry
+      queryClient.invalidateQueries({
+        queryKey: ["employee", id],
+        exact: true,
+      });
+
+      // Also update the cache directly with the updated employee data
+      queryClient.setQueryData(["employee", id], updatedEmployee);
+
+      // Invalidate all employee lists to ensure consistency
       queryClient.invalidateQueries({
         queryKey: ["employees"],
-        refetchType: "all",
+        exact: false,
       });
     },
   });

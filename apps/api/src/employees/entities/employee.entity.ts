@@ -1,10 +1,16 @@
-import { Column, Entity, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import type { EmployeeStatus } from '@repo/schemas';
 import { Department } from '../../departments/entities/department.entity';
 
 @Entity('employees')
 export class EmployeeEntity {
-  @PrimaryColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column('text')

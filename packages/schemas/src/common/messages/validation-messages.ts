@@ -22,6 +22,7 @@ export const ValidationMessages = {
     `Name must be at least ${minLength} characters`,
   EMPLOYEE_EMAIL_FORMAT: "Must be a valid email address",
   EMPLOYEE_SALARY_POSITIVE: "Salary must be a positive number",
+  EMPLOYEE_DEPARTMENT_REQUIRED: "Please select a valid department",
   EMAIL_ALREADY_EXISTS: (email: string) =>
     `Employee with email ${email} already exists`,
   EMPLOYEE_NOT_FOUND: (id: string) => `Employee with ID ${id} not found`,

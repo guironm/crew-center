@@ -187,4 +187,34 @@ export class InMemoryEmployeeRepository
       }),
     );
   }
+
+  async addMany(employees: Employee[]): Promise<void> {
+    this.items.push(...employees);
+  }
+
+  /**
+   * Count employees by status
+   */
+  async countByStatus(status?: string): Promise<number> {
+    if (!status) {
+      return this.count();
+    }
+    
+    return this.items.filter(employee => employee.status === status).length;
+  }
+
+  /**
+   * Count unique departments
+   */
+  async countUniqueDepartments(): Promise<number> {
+    const departmentIds = new Set<string>();
+    
+    this.items.forEach(employee => {
+      if (employee.departmentId) {
+        departmentIds.add(employee.departmentId);
+      }
+    });
+    
+    return departmentIds.size;
+  }
 }

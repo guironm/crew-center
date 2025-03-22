@@ -24,6 +24,7 @@ export class EmployeesService {
   ) {}
 
   async findAll(): Promise<Employee[]> {
+    console.log('EmployeesService: findAll');
     return this.employeeRepository.findAll();
   }
 
@@ -94,18 +95,37 @@ export class EmployeesService {
 
   /**
    * Find employees based on search parameters
-   * @param searchParams Search parameters for filtering
+   * @param searchParams Search parameters for filtering employees
    * @returns Filtered list of employees
    */
   async find(searchParams: ApiSearchParams): Promise<Employee[]> {
-    // For backward compatibility, we still support the old format
-    // but internally we use our new query parameters format
-
-    // Option 1: Use the legacy method that is already compatible with our repositories
-    // return this.employeeRepository.findWithFilters(searchParams);
-
-    // Option 2: Use the new query builder approach (commented out for now)
+    // Generate database query from search params
     const queryParams = this.queryBuilder.buildQueryParams(searchParams);
+
+    // Apply the filters through the repository
     return this.employeeRepository.findMany(queryParams);
+  }
+
+  /**
+   * Get dashboard statistics
+   * @returns Employee statistics including counts by status and departments
+   */
+  async getStatistics() {
+    // Get total count and counts by status
+    const [total, active, inactive, onLeave, departmentCount] = await Promise.all([
+      this.employeeRepository.count(),
+      this.employeeRepository.countByStatus('active'),
+      this.employeeRepository.countByStatus('inactive'),
+      this.employeeRepository.countByStatus('on_leave'),
+      this.employeeRepository.countUniqueDepartments(),
+    ]);
+
+    return {
+      total,
+      active,
+      inactive,
+      onLeave,
+      departments: departmentCount
+    };
   }
 }

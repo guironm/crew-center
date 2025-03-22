@@ -17,12 +17,14 @@ export const employeeSchema = z.object({
     ),
   email: z.string().email(ValidationMessages.EMPLOYEE_EMAIL_FORMAT),
   role: z.string(),
-  departmentId: z.string().uuid(),
+  departmentId: z.string()
+    .min(1, ValidationMessages.EMPLOYEE_DEPARTMENT_REQUIRED)
+    .uuid({ message: ValidationMessages.EMPLOYEE_DEPARTMENT_REQUIRED }),
   department: departmentSchema.optional(),
   salary: z.coerce
     .number()
     .positive(ValidationMessages.EMPLOYEE_SALARY_POSITIVE),
-  picture: z.string().url().optional(),
+  picture: z.string().url().optional().nullable(),
   hireDate: z.date().optional(),
   status: employeeStatusEnum.default("active"),
 });

@@ -48,6 +48,8 @@ export function useSearch<T>(
     refetchOnMount: false,
     refetchOnReconnect: false,
     retry: false, // Don't retry failed queries automatically
+    // Prevent unnecessary rerenders while typing by keeping previous data
+    placeholderData: (prev) => prev,
     ...options,
   });
 }

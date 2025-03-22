@@ -20,6 +20,7 @@ export default function CreateEmployeeForm({
   onSuccess,
 }: CreateEmployeeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const createMutation = useCreateEmployee();
   const { data: departments = [] } = useDepartments();
 
@@ -44,12 +45,15 @@ export default function CreateEmployeeForm({
   // Handle form submission
   const onSubmit = async (data: CreateEmployeeDto) => {
     setIsSubmitting(true);
+    setErrorMessage(null); // Clear any previous errors
+    
     try {
       await createMutation.mutateAsync(data);
       reset();
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error("Error creating employee:", error);
+      setErrorMessage(error instanceof Error ? error.message : "An error occurred while creating the employee.");
     } finally {
       setIsSubmitting(false);
     }
@@ -57,6 +61,11 @@ export default function CreateEmployeeForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+          {errorMessage}
+        </div>
+      )}
       <div>
         <label
           htmlFor="name"

@@ -54,7 +54,9 @@ export class UserToEmployeePipe
     const today = new Date();
     const fiveYearsAgo = new Date(today);
     fiveYearsAgo.setFullYear(today.getFullYear() - 5);
-    const randomTimestamp = fiveYearsAgo.getTime() + Math.random() * (today.getTime() - fiveYearsAgo.getTime());
+    const randomTimestamp =
+      fiveYearsAgo.getTime() +
+      Math.random() * (today.getTime() - fiveYearsAgo.getTime());
     const hireDate = new Date(randomTimestamp);
 
     // Get departmentId from cache or find/create it

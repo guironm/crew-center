@@ -55,8 +55,10 @@ export class EmployeeEntityMapper {
    * Converts a CreateEmployeeDto to an entity
    */
   createDtoToEntity(dto: CreateEmployeeDto): DeepPartial<EmployeeEntity> {
+    // Handle null values for picture by converting to undefined
     return {
       ...dto,
+      picture: dto.picture === null ? undefined : dto.picture,
       departmentId: dto.departmentId,
       hireDate: dto.hireDate ? new Date(dto.hireDate) : undefined,
     };
@@ -68,6 +70,7 @@ export class EmployeeEntityMapper {
   updateDtoToEntity(dto: UpdateEmployeeDto): DeepPartial<EmployeeEntity> {
     return {
       ...dto,
+      picture: dto.picture === null ? undefined : dto.picture,
       departmentId: dto.departmentId,
       hireDate: dto.hireDate ? new Date(dto.hireDate) : undefined,
     };
@@ -79,6 +82,7 @@ export class EmployeeEntityMapper {
   domainToEntity(model: Employee): DeepPartial<EmployeeEntity> {
     return {
       ...model,
+      picture: model.picture === null ? undefined : model.picture,
       departmentId: model.departmentId,
       hireDate: model.hireDate ? new Date(model.hireDate) : undefined,
     };

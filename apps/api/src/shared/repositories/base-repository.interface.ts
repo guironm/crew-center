@@ -46,4 +46,14 @@ export interface BaseRepository<T, ID, CreateDTO, UpdateDTO> {
    * Delete an entity by ID
    */
   delete(id: ID): Promise<void>;
+
+  /**
+   * Count all entities
+   */
+  count(): Promise<number>;
+
+  /**
+   * Count entities with filtering
+   */
+  countWithFilter(filters?: Partial<Record<keyof T, any>>): Promise<number>;
 }

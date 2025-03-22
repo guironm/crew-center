@@ -85,10 +85,8 @@ export default function SearchBar({
       console.log("Sending search params:", searchParams);
       onSearch(searchParams);
 
-      // Keep focus on the search input after search is triggered
-      if (searchInputRef.current) {
-        searchInputRef.current.focus();
-      }
+      // Remove the auto-focus when search is triggered
+      // This was causing the focus to shift to search input when selecting filters
     }, 300);
 
     return () => {

@@ -4,9 +4,23 @@ import { EmployeesController } from './employees.controller';
 import { EmployeesService } from './employees.service';
 import { Employee, CreateEmployeeDto, UpdateEmployeeDto } from '@repo/schemas';
 import { EmployeeMapper } from '../shared/mappers';
+import { PaginatedEmployeesService } from './services/paginated-employees.service';
+import { PaginatedEmployeeQueryBuilder } from './services/paginated-query-builder.service';
+import { PaginatedEmployeeRepository } from './repositories/paginated-employee-repository';
+import { EmployeeQueryBuilderService } from './services/query-builder.service';
+import { EMPLOYEE_REPOSITORY } from './repositories/employee-repository.interface';
+import { EmployeeEntityMapper } from './mappers/employee-entity.mapper';
+import { SharedModule } from '../shared/shared.module';
 
 describe('EmployeesController', () => {
   let controller: EmployeesController;
+
+  // Mock department data
+  const mockDepartments = {
+    engineering: { id: 'd1', name: 'Engineering', description: 'Engineering department' },
+    product: { id: 'd2', name: 'Product', description: 'Product department' },
+    design: { id: 'd3', name: 'Design', description: 'Design department' },
+  };
 
   // Create mock employees
   const mockEmployees: Employee[] = [
@@ -15,7 +29,8 @@ describe('EmployeesController', () => {
       name: 'John Doe',
       email: 'john.doe@company.com',
       role: 'Software Engineer',
-      department: 'Engineering',
+      departmentId: mockDepartments.engineering.id,
+      department: mockDepartments.engineering,
       salary: 95000,
       status: 'active',
       hireDate: new Date('2021-01-15'),
@@ -25,7 +40,8 @@ describe('EmployeesController', () => {
       name: 'Jane Smith',
       email: 'jane.smith@company.com',
       role: 'Product Manager',
-      department: 'Product',
+      departmentId: mockDepartments.product.id,
+      department: mockDepartments.product,
       salary: 110000,
       status: 'active',
       hireDate: new Date('2020-08-10'),
@@ -48,6 +64,41 @@ describe('EmployeesController', () => {
     find: jest.fn(),
   };
 
+  // Mock the PaginatedEmployeesService
+  const mockPaginatedEmployeesService = {
+    findPaginated: jest.fn(),
+  };
+
+  // Mock repositories and other dependencies
+  const mockEmployeeRepository = {
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+    findByEmail: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    findWithFilters: jest.fn(),
+    addMany: jest.fn(),
+  };
+  
+  const mockPaginatedEmployeeRepository = {
+    findManyPaginated: jest.fn(),
+  };
+
+  const mockEmployeeQueryBuilder = {
+    buildQueryParams: jest.fn(),
+  };
+
+  const mockPaginatedEmployeeQueryBuilder = {
+    buildPaginatedQueryParams: jest.fn(),
+  };
+
+  const mockEmployeeEntityMapper = {
+    toDomain: jest.fn(),
+    toDomainList: jest.fn(),
+    toEntity: jest.fn(),
+  };
+
   // Mock the EmployeeMapper
   const mockEmployeeMapper = {
     toResponseDto: jest.fn().mockImplementation((emp) => ({
@@ -66,10 +117,17 @@ describe('EmployeesController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [],
       controllers: [EmployeesController],
       providers: [
         { provide: EmployeesService, useValue: mockEmployeesService },
         { provide: EmployeeMapper, useValue: mockEmployeeMapper },
+        { provide: PaginatedEmployeesService, useValue: mockPaginatedEmployeesService },
+        { provide: PaginatedEmployeeQueryBuilder, useValue: mockPaginatedEmployeeQueryBuilder },
+        { provide: PaginatedEmployeeRepository, useValue: mockPaginatedEmployeeRepository },
+        { provide: EmployeeQueryBuilderService, useValue: mockEmployeeQueryBuilder },
+        { provide: EmployeeEntityMapper, useValue: mockEmployeeEntityMapper },
+        { provide: EMPLOYEE_REPOSITORY, useValue: mockEmployeeRepository },
       ],
     }).compile();
 
@@ -126,7 +184,7 @@ describe('EmployeesController', () => {
         name: 'New Employee',
         email: 'new@example.com',
         role: 'Designer',
-        department: 'Design',
+        departmentId: mockDepartments.design.id,
         salary: 85000,
         status: 'active',
       };
@@ -134,6 +192,7 @@ describe('EmployeesController', () => {
       const newEmployee = {
         id: '4f7d0e9d-7c6b-49c3-8c41-a3a58c8d3b9f',
         ...createEmployeeDto,
+        department: mockDepartments.design,
         hireDate: new Date(),
       };
 
@@ -289,6 +348,61 @@ describe('EmployeesController', () => {
       expect(mockEmployeeMapper.toResponseDtoList).toHaveBeenCalledWith([
         mockEmployees[0],
       ]);
+    });
+  });
+
+  describe('searchPaginated', () => {
+    it('should search employees with pagination', async () => {
+      const searchParams = {
+        query: 'John',
+        department: 'Engineering',
+        status: 'active',
+        sortBy: 'name',
+        sortOrder: 'asc' as const,
+        page: 1,
+        limit: 10,
+      };
+
+      const paginatedResult = {
+        data: [mockEmployees[0]],
+        meta: {
+          page: 1,
+          limit: 10,
+          totalItems: 1,
+          totalPages: 1,
+        },
+      };
+
+      // Mock the findPaginated method to return filtered employees with pagination
+      mockPaginatedEmployeesService.findPaginated.mockResolvedValue(paginatedResult);
+      mockEmployeeMapper.toResponseDtoList.mockReturnValue([
+        mockEmployeeResponseDtos[0],
+      ]);
+
+      const result = await controller.searchPaginated(searchParams);
+
+      expect(result).toBeDefined();
+      expect(result.data.length).toBe(1);
+      expect(result.data[0]?.name).toBe('John Doe');
+      expect(result.meta.totalItems).toBe(1);
+      expect(mockPaginatedEmployeesService.findPaginated).toHaveBeenCalledWith(searchParams);
+      expect(mockEmployeeMapper.toResponseDtoList).toHaveBeenCalledWith([
+        mockEmployees[0],
+      ]);
+    });
+
+    it('should handle errors during paginated search', async () => {
+      const searchParams = {
+        page: 1,
+        limit: 10,
+        sortOrder: 'asc' as const,
+      };
+
+      const testError = new Error('Test error');
+      mockPaginatedEmployeesService.findPaginated.mockRejectedValue(testError);
+
+      await expect(controller.searchPaginated(searchParams)).rejects.toThrow(testError);
+      expect(mockPaginatedEmployeesService.findPaginated).toHaveBeenCalledWith(searchParams);
     });
   });
 });

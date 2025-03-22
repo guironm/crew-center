@@ -3,6 +3,8 @@ import {
   CreateEmployeeDto,
   UpdateEmployeeDto,
   ApiSearchParams,
+  PaginatedSearchParams,
+  PagedResponse,
 } from "@repo/schemas";
 import { config } from "../config/env";
 import axios from "axios";
@@ -88,8 +90,11 @@ export const employeeApi = {
       const response = await axios.post(`${API_URL}/employees`, data);
       return response.data;
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(`Error creating employee: ${error.response?.status}`);
+      if (axios.isAxiosError(error) && error.response) {
+        // Extract the specific error message from the API response
+        const errorMessage = error.response.data?.message || 
+                           `Error creating employee: ${error.response.status}`;
+        throw new Error(errorMessage);
       }
       throw error;
     }
@@ -116,6 +121,64 @@ export const employeeApi = {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         throw new Error(`Error deleting employee: ${error.response?.status}`);
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Search employees with pagination
+   */
+  searchPaginated: async (
+    params: PaginatedSearchParams,
+  ): Promise<PagedResponse<Employee>> => {
+    try {
+      // Build query params object
+      const queryParams: Record<string, string> = {};
+
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          queryParams[key] = String(value);
+        }
+      });
+
+      console.log(
+        `[${new Date().toISOString()}] Paginated search API called with params:`,
+        queryParams,
+      );
+
+      const response = await axios.get(`${API_URL}/employees/paginated`, {
+        params: queryParams,
+      });
+
+      console.log(
+        `[${new Date().toISOString()}] Paginated search API response meta:`,
+        response.data.meta,
+      );
+
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          `Error searching employees with pagination: ${error.response?.status}`,
+        );
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Get dashboard statistics
+   */
+  getStatistics: async () => {
+    try {
+      const response = await axios.get(`${API_URL}/employees/statistics`);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          `Error fetching dashboard statistics: ${error.response?.status}`
+        );
       }
       throw error;
     }

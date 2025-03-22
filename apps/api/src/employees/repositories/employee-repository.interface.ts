@@ -24,6 +24,8 @@ export interface IEmployeeRepository
   findByEmail(email: string): Promise<Employee | null>;
   findWithFilters(filters: Partial<ApiSearchParams>): Promise<Employee[]>;
   addMany(employees: Employee[]): Promise<void>;
+  countByStatus(status?: string): Promise<number>;
+  countUniqueDepartments(): Promise<number>;
 }
 
 /**
