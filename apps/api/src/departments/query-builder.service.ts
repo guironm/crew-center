@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ApiSearchParams } from '@repo/schemas';
 import { QueryParams } from '../shared/repositories/base-repository.interface';
-import { Department } from './entities/department.entity';
+import { Department } from '@repo/schemas';
 
 @Injectable()
 export class DepartmentQueryBuilderService {

@@ -42,7 +42,11 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
           </div>
           <div className="flex items-center">
             <BuildingOfficeIcon className="w-4 h-4 mr-2" />
-            <span>{employee.department}</span>
+            <span>
+              {employee.department
+                ? employee.department.name
+                : "Unknown Department"}
+            </span>
           </div>
         </div>
       </div>

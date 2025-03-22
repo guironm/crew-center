@@ -43,9 +43,14 @@ export class EmployeeSeederService implements OnModuleInit {
       this.logger.log('Seeding employees...');
       // Get random users and convert them to employees using the pipe
       const randomUsers = await this.usersService.getRandomUsers(count);
-      const newEmployees = randomUsers.map((user) =>
+
+      // Process each user asynchronously with the pipe
+      const employeePromises = randomUsers.map((user) =>
         this.userToEmployeePipe.transform(user),
       );
+
+      // Wait for all transformations to complete
+      const newEmployees = await Promise.all(employeePromises);
 
       // Add them to the repository
       await this.employeeRepository.addMany(newEmployees);

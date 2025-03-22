@@ -4,7 +4,6 @@ import {
   ConflictException,
   Inject,
 } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
 import {
   Employee,
   CreateEmployeeDto,
@@ -12,17 +11,15 @@ import {
   ValidationMessages,
   ApiSearchParams,
 } from '@repo/schemas';
-import { UserToEmployeePipe } from './pipes/user-to-employee.pipe';
 import type { IEmployeeRepository } from './repositories/employee-repository.interface';
+import { EMPLOYEE_REPOSITORY } from './repositories/employee-repository.interface';
 import { EmployeeQueryBuilderService } from './services/query-builder.service';
 
 @Injectable()
 export class EmployeesService {
   constructor(
-    private readonly usersService: UsersService,
-    private readonly userToEmployeePipe: UserToEmployeePipe,
     private readonly queryBuilder: EmployeeQueryBuilderService,
-    @Inject('EMPLOYEE_REPOSITORY')
+    @Inject(EMPLOYEE_REPOSITORY)
     private readonly employeeRepository: IEmployeeRepository,
   ) {}
 

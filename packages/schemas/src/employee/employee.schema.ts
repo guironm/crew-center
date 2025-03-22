@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { departmentNameSchema } from "../department";
+import { departmentSchema } from "../department";
 import { MIN_NAME_LENGTH, ValidationMessages } from "../common";
 
 // Employee status enum - the single source of truth for status values
@@ -17,8 +17,11 @@ export const employeeSchema = z.object({
     ),
   email: z.string().email(ValidationMessages.EMPLOYEE_EMAIL_FORMAT),
   role: z.string(),
-  department: z.string(),
-  salary: z.number().positive(ValidationMessages.EMPLOYEE_SALARY_POSITIVE),
+  departmentId: z.string().uuid(),
+  department: departmentSchema.optional(),
+  salary: z.coerce
+    .number()
+    .positive(ValidationMessages.EMPLOYEE_SALARY_POSITIVE),
   picture: z.string().url().optional(),
   hireDate: z.date().optional(),
   status: employeeStatusEnum.default("active"),

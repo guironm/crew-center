@@ -23,6 +23,9 @@ export const env = {
   ENABLE_DETAILED_LOGGING:
     process.env.ENABLE_DETAILED_LOGGING === 'true' || false,
 
+  // Database configuration
+  USE_DATABASE: true, //process.env.USE_DATABASE === 'true' || false,
+
   // initial number of employees to seed
   SEED_EMPLOYEE_COUNT: parseInt(process.env.SEED_EMPLOYEE_COUNT || '50', 10),
 };
@@ -34,6 +37,7 @@ type EnvVars = {
   RANDOM_USER_API_URL: string;
   NODE_ENV: string;
   ENABLE_DETAILED_LOGGING: boolean;
+  USE_DATABASE: boolean;
   SEED_EMPLOYEE_COUNT: number;
 };
 
@@ -50,5 +54,6 @@ export const envVariables = z.object({
   PORT: z.coerce.number().default(4000),
   HOST: z.string().default('0.0.0.0'),
   SEED_EMPLOYEE_COUNT: z.coerce.number().default(8),
+  USE_DATABASE: z.boolean().default(false),
   // ... existing env variables ...
 });

@@ -1,13 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { Department } from './entities/department.entity';
 import { ApiSearchParams } from '@repo/schemas';
-import { InMemoryDepartmentRepository } from './repositories/in-memory-department.repository';
+import { DEPARTMENT_REPOSITORY } from './repositories/department-repository.interface';
+import type { IDepartmentRepository } from './repositories/department-repository.interface';
 import { DepartmentQueryBuilderService } from './query-builder.service';
 
 @Injectable()
 export class DepartmentsService {
   constructor(
-    private readonly departmentRepository: InMemoryDepartmentRepository,
+    @Inject(DEPARTMENT_REPOSITORY)
+    private readonly departmentRepository: IDepartmentRepository,
     private readonly queryBuilder: DepartmentQueryBuilderService,
   ) {}
 
@@ -25,7 +27,7 @@ export class DepartmentsService {
    * @returns Department if found
    * @throws NotFoundException if department not found
    */
-  async findOne(id: number): Promise<Department> {
+  async findOne(id: string): Promise<Department> {
     const department = await this.departmentRepository.findOne(id);
 
     if (!department) {

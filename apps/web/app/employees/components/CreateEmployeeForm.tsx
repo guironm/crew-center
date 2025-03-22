@@ -8,7 +8,9 @@ import {
   createEmployeeSchema,
   CreateEmployeeDto,
   defaultRolesByDepartment,
+  Department,
 } from "@repo/schemas";
+import { useDepartments } from "../hooks/useDepartments";
 
 interface CreateEmployeeFormProps {
   onSuccess?: () => void;
@@ -19,6 +21,7 @@ export default function CreateEmployeeForm({
 }: CreateEmployeeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const createMutation = useCreateEmployee();
+  const { data: departments = [] } = useDepartments();
 
   // Initialize React Hook Form
   const {
@@ -32,7 +35,7 @@ export default function CreateEmployeeForm({
       name: "",
       email: "",
       role: "",
-      department: "Engineering",
+      departmentId: "",
       salary: 50000,
       status: "active",
     },
@@ -51,9 +54,6 @@ export default function CreateEmployeeForm({
       setIsSubmitting(false);
     }
   };
-
-  // Get department names for the dropdown - use Object.keys on defaultRolesByDepartment
-  const departmentNames = Object.keys(defaultRolesByDepartment);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -113,25 +113,26 @@ export default function CreateEmployeeForm({
 
       <div>
         <label
-          htmlFor="department"
+          htmlFor="departmentId"
           className="block text-sm font-medium text-slate-700 mb-1"
         >
           Department
         </label>
         <select
-          id="department"
-          {...register("department")}
+          id="departmentId"
+          {...register("departmentId")}
           className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          {departmentNames.map((dept) => (
-            <option key={dept} value={dept}>
-              {dept}
+          <option value="">Select a department</option>
+          {departments.map((dept: Department) => (
+            <option key={dept.id} value={dept.id}>
+              {dept.name}
             </option>
           ))}
         </select>
-        {errors.department && (
+        {errors.departmentId && (
           <p className="mt-1 text-sm text-red-600">
-            {errors.department.message}
+            {errors.departmentId.message}
           </p>
         )}
       </div>

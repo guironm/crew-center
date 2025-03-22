@@ -34,4 +34,26 @@ export class EmployeeMapper {
   toResponseDtoList(employees: Employee[]): EmployeeResponseDto[] {
     return employees.map((employee) => this.toResponseDto(employee));
   }
+
+  /**
+   * Maps an Employee domain object to its response DTO without ID
+   * @param employee The employee entity to map
+   * @returns The mapped EmployeeResponseDto without ID field
+   */
+  toResponseDtoWithoutId(employee: Employee): Omit<EmployeeResponseDto, 'id'> {
+    const responseDto = this.toResponseDto(employee);
+    const { id, ...responseDtoWithoutId } = responseDto;
+    return responseDtoWithoutId;
+  }
+
+  /**
+   * Maps a collection of Employee domain objects to response DTOs without IDs
+   * @param employees The employee entities to map
+   * @returns Array of mapped EmployeeResponseDto objects without ID fields
+   */
+  toResponseDtoListWithoutId(
+    employees: Employee[],
+  ): Omit<EmployeeResponseDto, 'id'>[] {
+    return employees.map((employee) => this.toResponseDtoWithoutId(employee));
+  }
 }

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Department schema
 export const departmentSchema = z.object({
-  id: z.number(),
+  id: z.string().uuid(),
   name: z.string(),
   description: z.string(),
 });

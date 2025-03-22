@@ -175,7 +175,7 @@ Initialize **Turborepo** and setup configuration.
 - Entity definitions [done] (in memory)
 - Unit test [done]
 - Integration tests
-- TypeOrm
+- TypeOrm [done]
 
 #### Frontend Development
 
@@ -198,9 +198,11 @@ Initialize **Turborepo** and setup configuration.
   the users service can work with different random users providers
 - **Employees**:
   handles employee crud operations
+- **Departments**
+  handles departments crud operations
 
 **schema**
-shared zod schema and infered types
+shared zod schema and infered types. DIfferent DTOs for incoming and outgoing data.
 
 **validation pipe**
 validates incoming DTOs
@@ -208,4 +210,12 @@ validates incoming DTOs
 **custom exception filter**
 handles zod validation exceptions
 
-The service layer accepts DTOs since we do not have rich domain objects that would warrant such a conversion between the application layers.
+The service layer accepts DTOs since we do not have rich domain objects that would warrant a conversion between controller and services layers.
+
+**Repository Pattern**
+supports: in memory and typeORM versions.
+migration is not setup DO NOT USE **synchronization = true** in production
+
+**initial seeding**
+Employees: initial seeding count = 50
+Departments: initial seeding 7 departments

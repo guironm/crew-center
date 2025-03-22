@@ -208,7 +208,11 @@ export default function EmployeeDetailPage() {
                     </div>
                     <div className="flex items-center">
                       <BuildingOfficeIcon className="w-5 h-5 mr-2 text-slate-500" />
-                      <span>{employee.department}</span>
+                      <span>
+                        {employee.department
+                          ? employee.department.name
+                          : "Unknown Department"}
+                      </span>
                     </div>
                   </div>
                 </div>

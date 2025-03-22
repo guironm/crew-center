@@ -1,19 +1,43 @@
+/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmployeesService } from './employees.service';
-import { UsersService } from '../users/users.service';
-import { UserToEmployeePipe } from './pipes/user-to-employee.pipe';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { CreateEmployeeDto, UpdateEmployeeDto, Employee } from '@repo/schemas';
+import { EmployeeQueryBuilderService } from './services/query-builder.service';
+import { EMPLOYEE_REPOSITORY } from './repositories/employee-repository.interface';
+import { v4 as uuidv4 } from 'uuid';
 
 describe('EmployeesService', () => {
   let service: EmployeesService;
 
-  const mockUsersService = {
-    getRandomUsers: jest.fn(),
+  // Define fixed UUIDs for consistent testing
+  const employeeIds = {
+    employee1: '1c24ab2c-e192-4188-8d69-481e98e83236',
+    employee2: '3a36c384-d714-45b7-b5c9-24d9e2c9344e',
+    newEmployee: '4f7d0e9d-7c6b-49c3-8c41-a3a58c8d3b9f',
+    invalidId: 'af98bd2f-c53e-47e9-bb6c-46ad9195482d',
   };
 
-  const mockUserToEmployeePipe = {
-    transform: jest.fn(),
+  const departmentIds = {
+    engineering: 'b8a9a2d8-5c0f-4a0c-8f88-43f0e26392c3',
+    design: 'c7b2a1d7-4b0e-3a0b-7f77-32e0e15281b2',
+  };
+
+  const mockDepartments = {
+    engineering: {
+      id: departmentIds.engineering,
+      name: 'Engineering',
+      description: 'Engineering department',
+    },
+    design: {
+      id: departmentIds.design,
+      name: 'Design',
+      description: 'Design department',
+    },
+  };
+
+  const mockEmployeeQueryBuilder = {
+    buildQueryParams: jest.fn(),
   };
 
   const mockEmployeeRepository = {
@@ -21,6 +45,7 @@ describe('EmployeesService', () => {
     findOne: jest.fn(),
     findByEmail: jest.fn(),
     findWithFilters: jest.fn(),
+    findMany: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -33,9 +58,11 @@ describe('EmployeesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EmployeesService,
-        { provide: UsersService, useValue: mockUsersService },
-        { provide: UserToEmployeePipe, useValue: mockUserToEmployeePipe },
-        { provide: 'EMPLOYEE_REPOSITORY', useValue: mockEmployeeRepository },
+        {
+          provide: EmployeeQueryBuilderService,
+          useValue: mockEmployeeQueryBuilder,
+        },
+        { provide: EMPLOYEE_REPOSITORY, useValue: mockEmployeeRepository },
       ],
     }).compile();
 
@@ -50,11 +77,12 @@ describe('EmployeesService', () => {
     it('should return all employees from repository', async () => {
       const mockEmployees: Employee[] = [
         {
-          id: '1',
+          id: employeeIds.employee1,
           name: 'Employee 1',
           email: 'employee1@example.com',
           role: 'Developer',
-          department: 'Engineering',
+          departmentId: departmentIds.engineering,
+          department: mockDepartments.engineering,
           salary: 95000,
           status: 'active',
         },
@@ -71,27 +99,34 @@ describe('EmployeesService', () => {
   describe('findOne', () => {
     it('should return an employee when valid ID is provided', async () => {
       const mockEmployee: Employee = {
-        id: '1',
+        id: employeeIds.employee1,
         name: 'Employee 1',
         email: 'employee1@example.com',
         role: 'Developer',
-        department: 'Engineering',
+        departmentId: departmentIds.engineering,
+        department: mockDepartments.engineering,
         salary: 95000,
         status: 'active',
       };
 
       mockEmployeeRepository.findOne.mockResolvedValue(mockEmployee);
 
-      const result = await service.findOne('1');
+      const result = await service.findOne(employeeIds.employee1);
       expect(result).toEqual(mockEmployee);
-      expect(mockEmployeeRepository.findOne).toHaveBeenCalledWith('1');
+      expect(mockEmployeeRepository.findOne).toHaveBeenCalledWith(
+        employeeIds.employee1,
+      );
     });
 
     it('should throw NotFoundException when invalid ID is provided', async () => {
       mockEmployeeRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.findOne('999')).rejects.toThrow(NotFoundException);
-      expect(mockEmployeeRepository.findOne).toHaveBeenCalledWith('999');
+      await expect(service.findOne(employeeIds.invalidId)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(mockEmployeeRepository.findOne).toHaveBeenCalledWith(
+        employeeIds.invalidId,
+      );
     });
   });
 
@@ -100,25 +135,32 @@ describe('EmployeesService', () => {
       const createEmployeeDto: CreateEmployeeDto = {
         name: 'New Employee',
         email: 'new@example.com',
-        role: 'Designer',
-        department: 'Design',
+        role: 'Developer',
+        departmentId: departmentIds.engineering,
         salary: 85000,
         status: 'active',
+        hireDate: '2023-01-15T00:00:00.000Z',
       };
 
-      const createdEmployee: Employee = {
-        id: '123',
-        ...createEmployeeDto,
+      const mockEmployee: Employee = {
+        id: employeeIds.newEmployee,
+        name: 'New Employee',
+        email: 'new@example.com',
+        role: 'Developer',
+        departmentId: departmentIds.engineering,
+        department: mockDepartments.engineering,
+        salary: 85000,
+        status: 'active',
+        hireDate: new Date('2023-01-15T00:00:00.000Z'),
       };
 
       mockEmployeeRepository.findByEmail.mockResolvedValue(null);
-      mockEmployeeRepository.create.mockResolvedValue(createdEmployee);
+      mockEmployeeRepository.create.mockResolvedValue(mockEmployee);
 
       const result = await service.create(createEmployeeDto);
-
-      expect(result).toEqual(createdEmployee);
+      expect(result).toEqual(mockEmployee);
       expect(mockEmployeeRepository.findByEmail).toHaveBeenCalledWith(
-        'new@example.com',
+        createEmployeeDto.email,
       );
       expect(mockEmployeeRepository.create).toHaveBeenCalledWith(
         createEmployeeDto,
@@ -131,17 +173,18 @@ describe('EmployeesService', () => {
         name: 'New Employee',
         email: existingEmail,
         role: 'Designer',
-        department: 'Design',
+        departmentId: departmentIds.design,
         salary: 85000,
         status: 'active',
       };
 
       const existingEmployee: Employee = {
-        id: '123',
+        id: employeeIds.employee2,
         name: 'Existing Employee',
         email: existingEmail,
         role: 'Developer',
-        department: 'Engineering',
+        departmentId: departmentIds.engineering,
+        department: mockDepartments.engineering,
         salary: 95000,
         status: 'active',
       };
@@ -159,21 +202,35 @@ describe('EmployeesService', () => {
   });
 
   describe('update', () => {
-    it('should update an existing employee', async () => {
-      const employeeId = '1';
+    it('should update an employee when employee exists and no email conflict', async () => {
+      const employeeId = employeeIds.employee1;
       const updateEmployeeDto: UpdateEmployeeDto = {
         name: 'Updated Name',
+        email: 'updated@example.com',
         salary: 100000,
+        hireDate: '2023-03-15T00:00:00.000Z',
+      };
+
+      const existingEmployee: Employee = {
+        id: employeeId,
+        name: 'Original Name',
+        email: 'original@example.com',
+        role: 'Developer',
+        departmentId: departmentIds.engineering,
+        department: mockDepartments.engineering,
+        salary: 95000,
+        status: 'active',
+        hireDate: new Date('2022-01-15'),
       };
 
       const updatedEmployee: Employee = {
-        id: employeeId,
-        name: 'Updated Name',
-        email: 'test@example.com',
-        role: 'Developer',
-        department: 'Engineering',
-        salary: 100000,
-        status: 'active',
+        ...existingEmployee,
+        name: updateEmployeeDto.name!,
+        email: updateEmployeeDto.email!,
+        salary: updateEmployeeDto.salary!,
+        hireDate: updateEmployeeDto.hireDate
+          ? new Date(updateEmployeeDto.hireDate)
+          : undefined,
       };
 
       mockEmployeeRepository.findByEmail.mockResolvedValue(null);
@@ -182,6 +239,9 @@ describe('EmployeesService', () => {
       const result = await service.update(employeeId, updateEmployeeDto);
 
       expect(result).toEqual(updatedEmployee);
+      expect(mockEmployeeRepository.findByEmail).toHaveBeenCalledWith(
+        updateEmployeeDto.email,
+      );
       expect(mockEmployeeRepository.update).toHaveBeenCalledWith(
         employeeId,
         updateEmployeeDto,
@@ -189,7 +249,7 @@ describe('EmployeesService', () => {
     });
 
     it('should throw not found exception if repository throws it', async () => {
-      const employeeId = '999';
+      const employeeId = employeeIds.invalidId;
       const updateEmployeeDto: UpdateEmployeeDto = {
         name: 'Updated Name',
       };
@@ -200,25 +260,41 @@ describe('EmployeesService', () => {
       await expect(
         service.update(employeeId, updateEmployeeDto),
       ).rejects.toThrow(NotFoundException);
+
+      expect(mockEmployeeRepository.update).toHaveBeenCalledWith(
+        employeeId,
+        updateEmployeeDto,
+      );
     });
 
     it('should throw conflict exception if updating to an existing email', async () => {
-      const employeeId = '1';
+      const employeeId = employeeIds.employee1;
       const existingEmail = 'existing@example.com';
       const updateEmployeeDto: UpdateEmployeeDto = {
         email: existingEmail,
       };
 
       const existingEmployee: Employee = {
-        id: '2', // Different ID
+        id: employeeIds.employee2, // Different ID
         name: 'Existing Employee',
         email: existingEmail,
         role: 'Developer',
-        department: 'Engineering',
+        departmentId: departmentIds.engineering,
+        department: mockDepartments.engineering,
         salary: 95000,
         status: 'active',
       };
 
+      mockEmployeeRepository.findOne.mockResolvedValue({
+        id: employeeId,
+        name: 'Original Employee',
+        email: 'original@example.com',
+        role: 'Developer',
+        departmentId: departmentIds.engineering,
+        department: mockDepartments.engineering,
+        salary: 95000,
+        status: 'active',
+      });
       mockEmployeeRepository.findByEmail.mockResolvedValue(existingEmployee);
 
       await expect(
@@ -233,13 +309,14 @@ describe('EmployeesService', () => {
 
   describe('delete', () => {
     it('should delete an existing employee', async () => {
-      const employeeId = '1';
+      const employeeId = employeeIds.employee1;
       const mockEmployee: Employee = {
         id: employeeId,
         name: 'Employee to Delete',
         email: 'delete@example.com',
         role: 'Developer',
-        department: 'Engineering',
+        departmentId: departmentIds.engineering,
+        department: mockDepartments.engineering,
         salary: 95000,
         status: 'active',
       };
@@ -254,7 +331,7 @@ describe('EmployeesService', () => {
     });
 
     it('should throw not found exception if employee does not exist', async () => {
-      const employeeId = '999';
+      const employeeId = employeeIds.invalidId;
 
       mockEmployeeRepository.findOne.mockResolvedValue(null);
 
@@ -267,27 +344,47 @@ describe('EmployeesService', () => {
   });
 
   describe('find', () => {
-    it('should call repository findWithFilters with search params', async () => {
+    it('should find employees based on search parameters', async () => {
+      const searchParams = {
+        query: 'John',
+        department: 'Engineering',
+        status: 'active',
+        sortBy: 'name',
+        sortOrder: 'asc' as const,
+      };
+
+      const mockQueryParams = {
+        textSearch: { query: 'John', fields: ['name', 'email', 'role'] },
+        filters: { department: 'Engineering', status: 'active' },
+        sort: { field: 'name', order: 'asc' },
+      };
+
       const mockEmployees: Employee[] = [
         {
-          id: '1',
-          name: 'Employee 1',
-          email: 'employee1@example.com',
+          id: employeeIds.employee1,
+          name: 'John Doe',
+          email: 'john.doe@example.com',
           role: 'Developer',
-          department: 'Engineering',
+          departmentId: departmentIds.engineering,
+          department: mockDepartments.engineering,
           salary: 95000,
           status: 'active',
         },
       ];
 
-      const searchParams = { query: 'Engineer', sortOrder: 'asc' as const };
-      mockEmployeeRepository.findWithFilters.mockResolvedValue(mockEmployees);
+      mockEmployeeQueryBuilder.buildQueryParams.mockReturnValue(
+        mockQueryParams,
+      );
+      mockEmployeeRepository.findMany.mockResolvedValue(mockEmployees);
 
       const result = await service.find(searchParams);
 
       expect(result).toEqual(mockEmployees);
-      expect(mockEmployeeRepository.findWithFilters).toHaveBeenCalledWith(
+      expect(mockEmployeeQueryBuilder.buildQueryParams).toHaveBeenCalledWith(
         searchParams,
+      );
+      expect(mockEmployeeRepository.findMany).toHaveBeenCalledWith(
+        mockQueryParams,
       );
     });
   });

@@ -21,8 +21,9 @@ export abstract class BaseInMemoryRepository<T, ID, CreateDTO, UpdateDTO>
 
   /**
    * Map create DTO to entity (override in derived classes)
+   * Can be synchronous or asynchronous
    */
-  protected abstract mapToEntity(createDto: CreateDTO, id: ID): T;
+  protected abstract mapToEntity(createDto: CreateDTO, id: ID): T | Promise<T>;
 
   /**
    * Find all entities
@@ -44,7 +45,7 @@ export abstract class BaseInMemoryRepository<T, ID, CreateDTO, UpdateDTO>
    */
   async create(createDto: CreateDTO): Promise<T> {
     const id = this.generateId();
-    const newItem = this.mapToEntity(createDto, id);
+    const newItem = await Promise.resolve(this.mapToEntity(createDto, id));
 
     this.items.push(newItem);
     return newItem;

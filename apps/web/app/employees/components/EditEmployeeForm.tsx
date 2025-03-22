@@ -9,7 +9,9 @@ import {
   UpdateEmployeeDto,
   defaultRolesByDepartment,
   Employee,
+  Department,
 } from "@repo/schemas";
+import { useDepartments } from "../hooks/useDepartments";
 
 interface EditEmployeeFormProps {
   employee: Employee;
@@ -22,6 +24,7 @@ export default function EditEmployeeForm({
 }: EditEmployeeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const updateMutation = useUpdateEmployee(employee.id);
+  const { data: departments = [] } = useDepartments();
 
   // Initialize React Hook Form
   const {
@@ -35,7 +38,7 @@ export default function EditEmployeeForm({
       name: employee.name,
       email: employee.email,
       role: employee.role,
-      department: employee.department,
+      departmentId: employee.departmentId,
       salary: employee.salary,
       status: employee.status,
     },
@@ -47,7 +50,7 @@ export default function EditEmployeeForm({
       name: employee.name,
       email: employee.email,
       role: employee.role,
-      department: employee.department,
+      departmentId: employee.departmentId,
       salary: employee.salary,
       status: employee.status,
     });
@@ -65,9 +68,6 @@ export default function EditEmployeeForm({
       setIsSubmitting(false);
     }
   };
-
-  // Get department names for the dropdown
-  const departmentNames = Object.keys(defaultRolesByDepartment);
 
   // Get status options
   const statusOptions = ["active", "inactive", "on_leave"];
@@ -130,25 +130,25 @@ export default function EditEmployeeForm({
 
       <div>
         <label
-          htmlFor="department"
+          htmlFor="departmentId"
           className="block text-sm font-medium text-slate-700 mb-1"
         >
           Department
         </label>
         <select
-          id="department"
-          {...register("department")}
+          id="departmentId"
+          {...register("departmentId")}
           className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          {departmentNames.map((dept) => (
-            <option key={dept} value={dept}>
-              {dept}
+          {departments.map((dept: Department) => (
+            <option key={dept.id} value={dept.id}>
+              {dept.name}
             </option>
           ))}
         </select>
-        {errors.department && (
+        {errors.departmentId && (
           <p className="mt-1 text-sm text-red-600">
-            {errors.department.message}
+            {errors.departmentId.message}
           </p>
         )}
       </div>

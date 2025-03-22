@@ -1,6 +1,6 @@
-import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { DepartmentsService } from './departments.service';
-import { Department } from './entities/department.entity';
+import { Department } from '@repo/schemas';
 import {
   ApiTags,
   ApiOperation,
@@ -61,12 +61,12 @@ export class DepartmentsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a department by ID' })
-  @ApiParam({ name: 'id', description: 'Department ID' })
+  @ApiParam({ name: 'id', description: 'Department UUID' })
   @ApiOkResponse({
     description: 'Returns the department with the specified ID',
   })
   @ApiNotFoundResponse({ description: 'Department not found' })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Department> {
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Department> {
     return this.departmentsService.findOne(id);
   }
 }

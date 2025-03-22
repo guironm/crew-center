@@ -1,24 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { BaseInMemoryRepository } from '../../shared/repositories/base-in-memory.repository';
 import { Department } from '../entities/department.entity';
-
-interface DepartmentCreateDto {
-  name: string;
-  description: string;
-}
-
-interface DepartmentUpdateDto {
-  name?: string;
-  description?: string;
-}
+import { IDepartmentRepository } from './department-repository.interface';
+import { v4 as uuidv4 } from 'uuid';
+import { CreateDepartmentDto, UpdateDepartmentDto } from '@repo/schemas';
 
 @Injectable()
-export class InMemoryDepartmentRepository extends BaseInMemoryRepository<
-  Department,
-  number,
-  DepartmentCreateDto,
-  DepartmentUpdateDto
-> {
+export class InMemoryDepartmentRepository
+  extends BaseInMemoryRepository<
+    Department,
+    string,
+    CreateDepartmentDto,
+    UpdateDepartmentDto
+  >
+  implements IDepartmentRepository
+{
   constructor() {
     super();
     // Initialize with hardcoded departments
@@ -29,15 +25,13 @@ export class InMemoryDepartmentRepository extends BaseInMemoryRepository<
     return 'id';
   }
 
-  protected generateId(): number {
-    return this.items.length > 0
-      ? Math.max(...this.items.map((item) => item.id)) + 1
-      : 1;
+  protected generateId(): string {
+    return uuidv4();
   }
 
   protected mapToEntity(
-    createDto: DepartmentCreateDto,
-    id: number,
+    createDto: CreateDepartmentDto,
+    id: string,
   ): Department {
     return {
       id,
@@ -61,37 +55,37 @@ export class InMemoryDepartmentRepository extends BaseInMemoryRepository<
   private seedInitialDepartments(): void {
     const initialDepartments: Department[] = [
       {
-        id: 1,
+        id: uuidv4(),
         name: 'Engineering',
         description: 'Software development and infrastructure',
       },
       {
-        id: 2,
+        id: uuidv4(),
         name: 'Marketing',
         description: 'Marketing, communications, and brand management',
       },
       {
-        id: 3,
+        id: uuidv4(),
         name: 'Sales',
         description: 'Client acquisition and account management',
       },
       {
-        id: 4,
+        id: uuidv4(),
         name: 'Finance',
         description: 'Financial operations and accounting',
       },
       {
-        id: 5,
+        id: uuidv4(),
         name: 'HR',
         description: 'Human resources and talent management',
       },
       {
-        id: 6,
+        id: uuidv4(),
         name: 'Design',
         description: 'User experience and product design',
       },
       {
-        id: 7,
+        id: uuidv4(),
         name: 'Product',
         description: 'Product management and strategy',
       },

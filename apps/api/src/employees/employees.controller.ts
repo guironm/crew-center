@@ -62,27 +62,32 @@ export class EmployeesController {
     name: 'query',
     required: false,
     description: 'Search query for name, email, or role',
+    type: String,
   })
   @ApiQuery({
     name: 'department',
     required: false,
     description: 'Filter by department',
+    type: String,
   })
   @ApiQuery({
     name: 'status',
     required: false,
     description: 'Filter by status',
+    type: String,
   })
   @ApiQuery({
     name: 'sortBy',
     required: false,
-    description: 'Field to sort by',
+    description: 'Sort by field',
+    type: String,
   })
   @ApiQuery({
     name: 'sortOrder',
     required: false,
+    description: 'Sort order (asc or desc)',
+    type: String,
     enum: ['asc', 'desc'],
-    description: 'Sort order',
   })
   @ApiOkResponse({
     description: 'Returns employees matching the search criteria',

@@ -6,6 +6,11 @@ import {
 } from '@repo/schemas';
 import { BaseRepository } from '../../shared/repositories/base-repository.interface';
 
+/**
+ * Interface for employee repositories
+ * This ensures that both in-memory and TypeORM implementations
+ * follow the same contract
+ */
 export interface IEmployeeRepository
   extends BaseRepository<
     Employee,
@@ -20,3 +25,8 @@ export interface IEmployeeRepository
   findWithFilters(filters: Partial<ApiSearchParams>): Promise<Employee[]>;
   addMany(employees: Employee[]): Promise<void>;
 }
+
+/**
+ * Token for employee repository injection
+ */
+export const EMPLOYEE_REPOSITORY = 'EMPLOYEE_REPOSITORY';
