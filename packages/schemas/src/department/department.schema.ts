@@ -9,27 +9,19 @@ export const departmentSchema = z.object({
 
 export type Department = z.infer<typeof departmentSchema>;
 
-// Department name enum
-export const departmentNameSchema = z.enum([
-  "Engineering",
-  "Marketing",
-  "Sales",
-  "Finance",
-  "HR",
-  "Design",
-  "Product",
-]);
+// Department name - now just a string instead of enum
+export const departmentNameSchema = z.string();
 
 export type DepartmentName = z.infer<typeof departmentNameSchema>;
 
-// Role schema for each department
+// Role schema for each department - now a record with any string key
 export const rolesByDepartmentSchema = z.record(
-  departmentNameSchema,
+  z.string(),
   z.array(z.string()),
 );
 
-// Default roles by department
-export const defaultRolesByDepartment: Record<DepartmentName, string[]> = {
+// Default roles by department - still keeping defaults for existing departments
+export const defaultRolesByDepartment: Record<string, string[]> = {
   Engineering: [
     "Software Engineer",
     "DevOps Engineer",

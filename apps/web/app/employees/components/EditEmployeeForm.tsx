@@ -7,7 +7,7 @@ import { useUpdateEmployee } from "../hooks/useEmployees";
 import {
   updateEmployeeSchema,
   UpdateEmployeeDto,
-  departmentNameSchema,
+  defaultRolesByDepartment,
   Employee,
 } from "@repo/schemas";
 
@@ -67,7 +67,7 @@ export default function EditEmployeeForm({
   };
 
   // Get department names for the dropdown
-  const departmentNames = Object.values(departmentNameSchema.enum);
+  const departmentNames = Object.keys(defaultRolesByDepartment);
 
   // Get status options
   const statusOptions = ["active", "inactive", "on_leave"];

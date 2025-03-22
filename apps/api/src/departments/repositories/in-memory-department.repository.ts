@@ -1,7 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { BaseInMemoryRepository } from '../../shared/repositories/base-in-memory.repository';
 import { Department } from '../entities/department.entity';
-import { DepartmentDto } from '../dto/department.dto';
 
 interface DepartmentCreateDto {
   name: string;
@@ -49,11 +48,11 @@ export class InMemoryDepartmentRepository extends BaseInMemoryRepository<
   /**
    * Find a department by name (case-insensitive)
    */
-  async findByName(name: string): Promise<Department | null> {
+  findByName(name: string): Promise<Department | null> {
     const department = this.items.find(
       (dept) => dept.name.toLowerCase() === name.toLowerCase(),
     );
-    return department || null;
+    return Promise.resolve(department || null);
   }
 
   /**

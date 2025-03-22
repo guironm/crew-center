@@ -17,7 +17,7 @@ export const employeeSchema = z.object({
     ),
   email: z.string().email(ValidationMessages.EMPLOYEE_EMAIL_FORMAT),
   role: z.string(),
-  department: departmentNameSchema,
+  department: z.string(),
   salary: z.number().positive(ValidationMessages.EMPLOYEE_SALARY_POSITIVE),
   picture: z.string().url().optional(),
   hireDate: z.date().optional(),

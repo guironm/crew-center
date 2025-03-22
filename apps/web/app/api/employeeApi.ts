@@ -41,7 +41,7 @@ export const employeeApi = {
     try {
       // Build query params object
       const queryParams: Record<string, string> = {};
-      
+
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") {
           queryParams[key] = String(value);
@@ -54,11 +54,14 @@ export const employeeApi = {
       );
 
       const response = await axios.get(`${API_URL}/employees/search`, {
-        params: queryParams
+        params: queryParams,
       });
 
-      console.log(`[${new Date().toISOString()}] Search API response:`, response.data);
-      
+      console.log(
+        `[${new Date().toISOString()}] Search API response:`,
+        response.data,
+      );
+
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {

@@ -3,7 +3,7 @@
 import {
   ApiSearchParams,
   EmployeeStatus,
-  departmentNameSchema,
+  defaultRolesByDepartment,
   employeeStatusEnum,
 } from "@repo/schemas";
 import SearchBar from "../../components/ui/SearchBar";
@@ -17,8 +17,8 @@ export default function EmployeeSearchBar({
   onSearch,
   initialParams,
 }: EmployeeSearchBarProps) {
-  // Get department options from the schema
-  const departmentOptions = Object.values(departmentNameSchema.enum).map(
+  // Get department options from the default roles dictionary
+  const departmentOptions = Object.keys(defaultRolesByDepartment).map(
     (dept) => ({
       value: dept,
       label: dept,

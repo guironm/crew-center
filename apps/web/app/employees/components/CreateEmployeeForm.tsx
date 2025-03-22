@@ -7,8 +7,7 @@ import { useCreateEmployee } from "../hooks/useEmployees";
 import {
   createEmployeeSchema,
   CreateEmployeeDto,
-  departmentNameSchema,
-  DepartmentName,
+  defaultRolesByDepartment,
 } from "@repo/schemas";
 
 interface CreateEmployeeFormProps {
@@ -33,7 +32,7 @@ export default function CreateEmployeeForm({
       name: "",
       email: "",
       role: "",
-      department: "Engineering" as DepartmentName,
+      department: "Engineering",
       salary: 50000,
       status: "active",
     },
@@ -53,8 +52,8 @@ export default function CreateEmployeeForm({
     }
   };
 
-  // Get department names for the dropdown
-  const departmentNames = Object.values(departmentNameSchema.enum);
+  // Get department names for the dropdown - use Object.keys on defaultRolesByDepartment
+  const departmentNames = Object.keys(defaultRolesByDepartment);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

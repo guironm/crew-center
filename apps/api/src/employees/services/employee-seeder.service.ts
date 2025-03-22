@@ -40,6 +40,7 @@ export class EmployeeSeederService implements OnModuleInit {
         return;
       }
 
+      this.logger.log('Seeding employees...');
       // Get random users and convert them to employees using the pipe
       const randomUsers = await this.usersService.getRandomUsers(count);
       const newEmployees = randomUsers.map((user) =>

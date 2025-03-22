@@ -11,7 +11,9 @@ export const departmentApi = {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(`Error fetching departments: ${error.response?.status}`);
+        throw new Error(
+          `Error fetching departments: ${error.response?.status}`,
+        );
       }
       throw error;
     }
@@ -21,7 +23,7 @@ export const departmentApi = {
     try {
       // Build query params object
       const queryParams: Record<string, string> = {};
-      
+
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") {
           queryParams[key] = String(value);
@@ -29,13 +31,15 @@ export const departmentApi = {
       });
 
       const response = await axios.get(`${API_URL}/departments/search`, {
-        params: queryParams
+        params: queryParams,
       });
 
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(`Error searching departments: ${error.response?.status}`);
+        throw new Error(
+          `Error searching departments: ${error.response?.status}`,
+        );
       }
       throw error;
     }

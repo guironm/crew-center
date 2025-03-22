@@ -1,6 +1,5 @@
 import { PipeTransform, Injectable } from '@nestjs/common';
 import {
-  DepartmentName,
   Employee,
   defaultRolesByDepartment,
   employeeStatusEnum,
@@ -14,17 +13,15 @@ import { v4 as uuidv4 } from 'uuid';
 export class UserToEmployeePipe implements PipeTransform<RandomUser, Employee> {
   transform(user: RandomUser): Employee {
     // Randomly select a department from our known departments
-    const departmentNames = Object.keys(
-      defaultRolesByDepartment,
-    ) as DepartmentName[];
+    const departmentNames = Object.keys(defaultRolesByDepartment);
     const departmentIndex = Math.floor(Math.random() * departmentNames.length);
-    // This is safe because we know departmentNames has values from the enum
-    const department = departmentNames[departmentIndex] as DepartmentName;
+    // Default to Engineering if for some reason the array is empty
+    const department = departmentNames[departmentIndex] || 'Engineering';
 
-    // Get roles for the department - this is now type-safe
-    const roles = defaultRolesByDepartment[department];
+    // Get roles for the department - ensure there's always at least one role
+    const roles = defaultRolesByDepartment[department] || ['Employee'];
     const roleIndex = Math.floor(Math.random() * roles.length);
-    const role = roles[roleIndex] as string; // Non-null assertion
+    const role = roles[roleIndex] || 'Employee';
 
     // Generate a random salary between 60000 and 150000
     const salary = Math.floor(Math.random() * (150000 - 60000)) + 60000;

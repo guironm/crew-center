@@ -23,8 +23,8 @@ export const env = {
   ENABLE_DETAILED_LOGGING:
     process.env.ENABLE_DETAILED_LOGGING === 'true' || false,
 
-  // New environment variable
-  SEED_EMPLOYEE_COUNT: parseInt(process.env.SEED_EMPLOYEE_COUNT || '8', 10),
+  // initial number of employees to seed
+  SEED_EMPLOYEE_COUNT: parseInt(process.env.SEED_EMPLOYEE_COUNT || '50', 10),
 };
 
 // For type safety, define the expected environment variable types
