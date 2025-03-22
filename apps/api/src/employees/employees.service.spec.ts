@@ -1,41 +1,72 @@
+/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmployeesService } from './employees.service';
-import { UsersService } from '../users/users.service';
-import { UserToEmployeePipe } from './pipes/user-to-employee.pipe';
-import { SearchService } from '../search/search.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { CreateEmployeeDto, UpdateEmployeeDto } from '@repo/schemas';
+import { CreateEmployeeDto, UpdateEmployeeDto, Employee } from '@repo/schemas';
+import { EmployeeQueryBuilderService } from './services/query-builder.service';
+import { EMPLOYEE_REPOSITORY } from './repositories/employee-repository.interface';
+import { v4 as uuidv4 } from 'uuid';
 
 describe('EmployeesService', () => {
   let service: EmployeesService;
 
-  const mockUsersService = {
-    getRandomUsers: jest.fn(),
+  // Define fixed UUIDs for consistent testing
+  const employeeIds = {
+    employee1: '1c24ab2c-e192-4188-8d69-481e98e83236',
+    employee2: '3a36c384-d714-45b7-b5c9-24d9e2c9344e',
+    newEmployee: '4f7d0e9d-7c6b-49c3-8c41-a3a58c8d3b9f',
+    invalidId: 'af98bd2f-c53e-47e9-bb6c-46ad9195482d',
   };
 
-  const mockUserToEmployeePipe = {
-    transform: jest.fn(),
+  const departmentIds = {
+    engineering: 'b8a9a2d8-5c0f-4a0c-8f88-43f0e26392c3',
+    design: 'c7b2a1d7-4b0e-3a0b-7f77-32e0e15281b2',
   };
 
-  const mockSearchService = {
-    search: jest.fn(),
+  const mockDepartments = {
+    engineering: {
+      id: departmentIds.engineering,
+      name: 'Engineering',
+      description: 'Engineering department',
+    },
+    design: {
+      id: departmentIds.design,
+      name: 'Design',
+      description: 'Design department',
+    },
+  };
+
+  const mockEmployeeQueryBuilder = {
+    buildQueryParams: jest.fn(),
+  };
+
+  const mockEmployeeRepository = {
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+    findByEmail: jest.fn(),
+    findWithFilters: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    addMany: jest.fn(),
   };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EmployeesService,
-        { provide: UsersService, useValue: mockUsersService },
-        { provide: UserToEmployeePipe, useValue: mockUserToEmployeePipe },
-        { provide: SearchService, useValue: mockSearchService },
+        {
+          provide: EmployeeQueryBuilderService,
+          useValue: mockEmployeeQueryBuilder,
+        },
+        { provide: EMPLOYEE_REPOSITORY, useValue: mockEmployeeRepository },
       ],
     }).compile();
 
     service = module.get<EmployeesService>(EmployeesService);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -43,324 +74,318 @@ describe('EmployeesService', () => {
   });
 
   describe('findAll', () => {
-    it('should return all employees', async () => {
-      // Mock the behavior of getRandomUsers
-      mockUsersService.getRandomUsers.mockResolvedValue([
+    it('should return all employees from repository', async () => {
+      const mockEmployees: Employee[] = [
         {
-          name: { first: 'John', last: 'Doe' },
-          email: 'john@example.com',
-          picture: { large: 'url' },
+          id: employeeIds.employee1,
+          name: 'Employee 1',
+          email: 'employee1@example.com',
+          role: 'Developer',
+          departmentId: departmentIds.engineering,
+          department: mockDepartments.engineering,
+          salary: 95000,
+          status: 'active',
         },
-      ]);
+      ];
 
-      // Mock the behavior of transform
-      mockUserToEmployeePipe.transform.mockReturnValue({
-        id: 10,
-        name: 'John Doe',
-        email: 'john@example.com',
+      mockEmployeeRepository.findAll.mockResolvedValue(mockEmployees);
+
+      const result = await service.findAll();
+      expect(result).toEqual(mockEmployees);
+      expect(mockEmployeeRepository.findAll).toHaveBeenCalled();
+    });
+  });
+
+  describe('findOne', () => {
+    it('should return an employee when valid ID is provided', async () => {
+      const mockEmployee: Employee = {
+        id: employeeIds.employee1,
+        name: 'Employee 1',
+        email: 'employee1@example.com',
         role: 'Developer',
-        department: 'Engineering',
+        departmentId: departmentIds.engineering,
+        department: mockDepartments.engineering,
         salary: 95000,
         status: 'active',
-        picture: 'url',
-      });
+      };
 
-      const result = await service.findAll();
+      mockEmployeeRepository.findOne.mockResolvedValue(mockEmployee);
 
-      // Verify we have the transformed random user
-      expect(result.length).toBeGreaterThanOrEqual(0);
-      expect(mockUsersService.getRandomUsers).toHaveBeenCalledWith(8);
-      expect(mockUserToEmployeePipe.transform).toHaveBeenCalled();
+      const result = await service.findOne(employeeIds.employee1);
+      expect(result).toEqual(mockEmployee);
+      expect(mockEmployeeRepository.findOne).toHaveBeenCalledWith(
+        employeeIds.employee1,
+      );
     });
 
-    it('should return only static employees if API call fails', async () => {
-      mockUsersService.getRandomUsers.mockRejectedValue(new Error('API error'));
+    it('should throw NotFoundException when invalid ID is provided', async () => {
+      mockEmployeeRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.findAll();
-
-      // Should have at least some employees
-      expect(result.length).toBeGreaterThanOrEqual(0);
-      expect(mockUsersService.getRandomUsers).toHaveBeenCalledWith(8);
-      expect(mockUserToEmployeePipe.transform).not.toHaveBeenCalled();
+      await expect(service.findOne(employeeIds.invalidId)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(mockEmployeeRepository.findOne).toHaveBeenCalledWith(
+        employeeIds.invalidId,
+      );
     });
   });
 
   describe('create', () => {
-    it('should create a new employee', () => {
+    it('should create a new employee', async () => {
       const createEmployeeDto: CreateEmployeeDto = {
         name: 'New Employee',
         email: 'new@example.com',
-        role: 'Designer',
-        department: 'Design',
+        role: 'Developer',
+        departmentId: departmentIds.engineering,
         salary: 85000,
         status: 'active',
+        hireDate: '2023-01-15T00:00:00.000Z',
       };
 
-      // First populate the service with some employees
-      service['employees'] = [
-        {
-          id: 1,
-          name: 'Existing Employee',
-          email: 'existing@example.com',
-          role: 'Developer',
-          department: 'Engineering',
-          salary: 95000,
-          status: 'active',
-        },
-      ];
+      const mockEmployee: Employee = {
+        id: employeeIds.newEmployee,
+        name: 'New Employee',
+        email: 'new@example.com',
+        role: 'Developer',
+        departmentId: departmentIds.engineering,
+        department: mockDepartments.engineering,
+        salary: 85000,
+        status: 'active',
+        hireDate: new Date('2023-01-15T00:00:00.000Z'),
+      };
 
-      const result = service.create(createEmployeeDto);
+      mockEmployeeRepository.findByEmail.mockResolvedValue(null);
+      mockEmployeeRepository.create.mockResolvedValue(mockEmployee);
 
-      expect(result).toBeDefined();
-      expect(result.id).toBe(1); // ID is 1 based on the test setup
-      expect(result.name).toBe(createEmployeeDto.name);
-      expect(result.email).toBe(createEmployeeDto.email);
-      expect(service['employees'].length).toBe(2);
+      const result = await service.create(createEmployeeDto);
+      expect(result).toEqual(mockEmployee);
+      expect(mockEmployeeRepository.findByEmail).toHaveBeenCalledWith(
+        createEmployeeDto.email,
+      );
+      expect(mockEmployeeRepository.create).toHaveBeenCalledWith(
+        createEmployeeDto,
+      );
     });
 
-    it('should throw conflict exception if email already exists', () => {
+    it('should throw conflict exception if email already exists', async () => {
       const existingEmail = 'existing@example.com';
-
-      // First populate the service with some employees
-      service['employees'] = [
-        {
-          id: 1,
-          name: 'Existing Employee',
-          email: existingEmail,
-          role: 'Developer',
-          department: 'Engineering',
-          salary: 95000,
-          status: 'active',
-        },
-      ];
-
       const createEmployeeDto: CreateEmployeeDto = {
         name: 'New Employee',
-        email: existingEmail, // Using the same email
+        email: existingEmail,
         role: 'Designer',
-        department: 'Design',
+        departmentId: departmentIds.design,
         salary: 85000,
         status: 'active',
       };
 
-      expect(() => service.create(createEmployeeDto)).toThrow(
+      const existingEmployee: Employee = {
+        id: employeeIds.employee2,
+        name: 'Existing Employee',
+        email: existingEmail,
+        role: 'Developer',
+        departmentId: departmentIds.engineering,
+        department: mockDepartments.engineering,
+        salary: 95000,
+        status: 'active',
+      };
+
+      mockEmployeeRepository.findByEmail.mockResolvedValue(existingEmployee);
+
+      await expect(service.create(createEmployeeDto)).rejects.toThrow(
         ConflictException,
       );
+      expect(mockEmployeeRepository.findByEmail).toHaveBeenCalledWith(
+        existingEmail,
+      );
+      expect(mockEmployeeRepository.create).not.toHaveBeenCalled();
     });
   });
 
   describe('update', () => {
-    it('should update an existing employee', () => {
-      const employeeId = 1;
+    it('should update an employee when employee exists and no email conflict', async () => {
+      const employeeId = employeeIds.employee1;
       const updateEmployeeDto: UpdateEmployeeDto = {
         name: 'Updated Name',
+        email: 'updated@example.com',
         salary: 100000,
+        hireDate: '2023-03-15T00:00:00.000Z',
       };
 
-      // First populate the service with an employee
-      service['employees'] = [
-        {
-          id: employeeId,
-          name: 'Original Name',
-          email: 'test@example.com',
-          role: 'Developer',
-          department: 'Engineering',
-          salary: 95000,
-          status: 'active',
-        },
-      ];
+      const existingEmployee: Employee = {
+        id: employeeId,
+        name: 'Original Name',
+        email: 'original@example.com',
+        role: 'Developer',
+        departmentId: departmentIds.engineering,
+        department: mockDepartments.engineering,
+        salary: 95000,
+        status: 'active',
+        hireDate: new Date('2022-01-15'),
+      };
 
-      const result = service.update(employeeId, updateEmployeeDto);
+      const updatedEmployee: Employee = {
+        ...existingEmployee,
+        name: updateEmployeeDto.name!,
+        email: updateEmployeeDto.email!,
+        salary: updateEmployeeDto.salary!,
+        hireDate: updateEmployeeDto.hireDate
+          ? new Date(updateEmployeeDto.hireDate)
+          : undefined,
+      };
 
-      expect(result).toBeDefined();
-      expect(result.id).toBe(employeeId);
-      expect(result.name).toBe(updateEmployeeDto.name);
-      expect(result.salary).toBe(updateEmployeeDto.salary);
-      // Fields not in the update DTO should remain unchanged
-      expect(result.email).toBe('test@example.com');
+      mockEmployeeRepository.findByEmail.mockResolvedValue(null);
+      mockEmployeeRepository.update.mockResolvedValue(updatedEmployee);
+
+      const result = await service.update(employeeId, updateEmployeeDto);
+
+      expect(result).toEqual(updatedEmployee);
+      expect(mockEmployeeRepository.findByEmail).toHaveBeenCalledWith(
+        updateEmployeeDto.email,
+      );
+      expect(mockEmployeeRepository.update).toHaveBeenCalledWith(
+        employeeId,
+        updateEmployeeDto,
+      );
     });
 
-    it('should throw not found exception if employee does not exist', () => {
-      const nonExistentId = 999;
+    it('should throw not found exception if repository throws it', async () => {
+      const employeeId = employeeIds.invalidId;
       const updateEmployeeDto: UpdateEmployeeDto = {
         name: 'Updated Name',
       };
 
-      service['employees'] = [
-        {
-          id: 1,
-          name: 'Original Name',
-          email: 'test@example.com',
-          role: 'Developer',
-          department: 'Engineering',
-          salary: 95000,
-          status: 'active',
-        },
-      ];
+      mockEmployeeRepository.findByEmail.mockResolvedValue(null);
+      mockEmployeeRepository.update.mockRejectedValue(new NotFoundException());
 
-      expect(() => service.update(nonExistentId, updateEmployeeDto)).toThrow(
-        NotFoundException,
+      await expect(
+        service.update(employeeId, updateEmployeeDto),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(mockEmployeeRepository.update).toHaveBeenCalledWith(
+        employeeId,
+        updateEmployeeDto,
       );
     });
 
-    it('should throw conflict exception if updating to an existing email', () => {
+    it('should throw conflict exception if updating to an existing email', async () => {
+      const employeeId = employeeIds.employee1;
       const existingEmail = 'existing@example.com';
-
-      service['employees'] = [
-        {
-          id: 1,
-          name: 'Employee 1',
-          email: existingEmail,
-          role: 'Developer',
-          department: 'Engineering',
-          salary: 95000,
-          status: 'active',
-        },
-        {
-          id: 2,
-          name: 'Employee 2',
-          email: 'employee2@example.com',
-          role: 'Designer',
-          department: 'Design',
-          salary: 85000,
-          status: 'active',
-        },
-      ];
-
       const updateEmployeeDto: UpdateEmployeeDto = {
-        email: existingEmail, // Trying to use an email that's already in use
+        email: existingEmail,
       };
 
-      expect(() => service.update(2, updateEmployeeDto)).toThrow(
-        ConflictException,
+      const existingEmployee: Employee = {
+        id: employeeIds.employee2, // Different ID
+        name: 'Existing Employee',
+        email: existingEmail,
+        role: 'Developer',
+        departmentId: departmentIds.engineering,
+        department: mockDepartments.engineering,
+        salary: 95000,
+        status: 'active',
+      };
+
+      mockEmployeeRepository.findOne.mockResolvedValue({
+        id: employeeId,
+        name: 'Original Employee',
+        email: 'original@example.com',
+        role: 'Developer',
+        departmentId: departmentIds.engineering,
+        department: mockDepartments.engineering,
+        salary: 95000,
+        status: 'active',
+      });
+      mockEmployeeRepository.findByEmail.mockResolvedValue(existingEmployee);
+
+      await expect(
+        service.update(employeeId, updateEmployeeDto),
+      ).rejects.toThrow(ConflictException);
+      expect(mockEmployeeRepository.findByEmail).toHaveBeenCalledWith(
+        existingEmail,
       );
+      expect(mockEmployeeRepository.update).not.toHaveBeenCalled();
     });
   });
 
   describe('delete', () => {
-    it('should delete an existing employee', () => {
-      const employeeId = 1;
+    it('should delete an existing employee', async () => {
+      const employeeId = employeeIds.employee1;
+      const mockEmployee: Employee = {
+        id: employeeId,
+        name: 'Employee to Delete',
+        email: 'delete@example.com',
+        role: 'Developer',
+        departmentId: departmentIds.engineering,
+        department: mockDepartments.engineering,
+        salary: 95000,
+        status: 'active',
+      };
 
-      // First populate the service with an employee
-      service['employees'] = [
-        {
-          id: employeeId,
-          name: 'Employee to Delete',
-          email: 'delete@example.com',
-          role: 'Developer',
-          department: 'Engineering',
-          salary: 95000,
-          status: 'active',
-        },
-      ];
+      mockEmployeeRepository.findOne.mockResolvedValue(mockEmployee);
+      mockEmployeeRepository.delete.mockResolvedValue(undefined);
 
-      expect(service['employees'].length).toBe(1);
+      await service.delete(employeeId);
 
-      service.delete(employeeId);
-
-      expect(service['employees'].length).toBe(0);
+      expect(mockEmployeeRepository.findOne).toHaveBeenCalledWith(employeeId);
+      expect(mockEmployeeRepository.delete).toHaveBeenCalledWith(employeeId);
     });
 
-    it('should throw not found exception if employee does not exist', () => {
-      const nonExistentId = 999;
+    it('should throw not found exception if employee does not exist', async () => {
+      const employeeId = employeeIds.invalidId;
 
-      service['employees'] = [
-        {
-          id: 1,
-          name: 'Existing Employee',
-          email: 'existing@example.com',
-          role: 'Developer',
-          department: 'Engineering',
-          salary: 95000,
-          status: 'active',
-        },
-      ];
+      mockEmployeeRepository.findOne.mockResolvedValue(null);
 
-      expect(() => service.delete(nonExistentId)).toThrow(NotFoundException);
+      await expect(service.delete(employeeId)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(mockEmployeeRepository.findOne).toHaveBeenCalledWith(employeeId);
+      expect(mockEmployeeRepository.delete).not.toHaveBeenCalled();
     });
   });
 
   describe('find', () => {
-    it('should search employees based on search parameters', async () => {
-      const mockEmployees = [
-        {
-          id: 1,
-          name: 'John Doe',
-          email: 'john@example.com',
-          role: 'Developer',
-          department: 'Engineering' as const,
-          salary: 95000,
-          status: 'active' as const,
-        },
-        {
-          id: 2,
-          name: 'Jane Smith',
-          email: 'jane@example.com',
-          role: 'Designer',
-          department: 'Design' as const,
-          salary: 90000,
-          status: 'on_leave' as const,
-        },
-      ];
-
-      // Set up employees
-      service['employees'] = mockEmployees;
-
-      // Set up search parameters
+    it('should find employees based on search parameters', async () => {
       const searchParams = {
         query: 'John',
         department: 'Engineering',
         status: 'active',
+        sortBy: 'name',
         sortOrder: 'asc' as const,
       };
 
-      // Mock search service to return filtered results
-      mockSearchService.search.mockResolvedValue([mockEmployees[0]]);
+      const mockQueryParams = {
+        textSearch: { query: 'John', fields: ['name', 'email', 'role'] },
+        filters: { department: 'Engineering', status: 'active' },
+        sort: { field: 'name', order: 'asc' },
+      };
 
-      const result = await service.find(searchParams);
+      const mockEmployees: Employee[] = [
+        {
+          id: employeeIds.employee1,
+          name: 'John Doe',
+          email: 'john.doe@example.com',
+          role: 'Developer',
+          departmentId: departmentIds.engineering,
+          department: mockDepartments.engineering,
+          salary: 95000,
+          status: 'active',
+        },
+      ];
 
-      expect(result).toEqual([mockEmployees[0]]);
-      expect(mockSearchService.search).toHaveBeenCalledWith(
-        mockEmployees,
-        searchParams,
-        ['name', 'email', 'role'],
+      mockEmployeeQueryBuilder.buildQueryParams.mockReturnValue(
+        mockQueryParams,
       );
-    });
+      mockEmployeeRepository.findMany.mockResolvedValue(mockEmployees);
 
-    it('should load employees first if they are not loaded', async () => {
-      // Empty employees array
-      service['employees'] = [];
-
-      // Mock getRandomUsers and transform
-      const mockUser = {
-        name: { first: 'John', last: 'Doe' },
-        email: 'john@example.com',
-        picture: { large: 'url' },
-      };
-
-      const mockEmployee = {
-        id: 1,
-        name: 'John Doe',
-        email: 'john@example.com',
-        role: 'Developer',
-        department: 'Engineering' as const,
-        salary: 95000,
-        status: 'active' as const,
-        picture: 'url',
-      };
-
-      mockUsersService.getRandomUsers.mockResolvedValue([mockUser]);
-      mockUserToEmployeePipe.transform.mockReturnValue(mockEmployee);
-      mockSearchService.search.mockResolvedValue([mockEmployee]);
-
-      // Call find with search parameters
-      const searchParams = { query: 'John', sortOrder: 'asc' as const };
       const result = await service.find(searchParams);
 
-      // Check if findAll was called (indirectly through getRandomUsers being called)
-      expect(mockUsersService.getRandomUsers).toHaveBeenCalled();
-      expect(mockSearchService.search).toHaveBeenCalled();
-      expect(result).toEqual([mockEmployee]);
+      expect(result).toEqual(mockEmployees);
+      expect(mockEmployeeQueryBuilder.buildQueryParams).toHaveBeenCalledWith(
+        searchParams,
+      );
+      expect(mockEmployeeRepository.findMany).toHaveBeenCalledWith(
+        mockQueryParams,
+      );
     });
   });
 });

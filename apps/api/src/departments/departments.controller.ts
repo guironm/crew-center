@@ -1,6 +1,6 @@
-import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { DepartmentsService } from './departments.service';
-import type { DepartmentResponseDto } from './entities/department.entity';
+import { Department } from '@repo/schemas';
 import {
   ApiTags,
   ApiOperation,
@@ -36,11 +36,11 @@ export class DepartmentsController {
   @ApiOkResponse({
     description: 'Returns departments matching the search criteria',
   })
-  search(
+  async search(
     @Query('query') query?: string,
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder: 'asc' | 'desc' = 'asc',
-  ): DepartmentResponseDto[] {
+  ): Promise<Department[]> {
     const searchParams = {
       query,
       sortBy,
@@ -55,18 +55,18 @@ export class DepartmentsController {
   @ApiOkResponse({
     description: 'Returns a list of all departments',
   })
-  findAll(): DepartmentResponseDto[] {
+  async findAll(): Promise<Department[]> {
     return this.departmentsService.findAll();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a department by ID' })
-  @ApiParam({ name: 'id', description: 'Department ID' })
+  @ApiParam({ name: 'id', description: 'Department UUID' })
   @ApiOkResponse({
     description: 'Returns the department with the specified ID',
   })
   @ApiNotFoundResponse({ description: 'Department not found' })
-  findOne(@Param('id', ParseIntPipe) id: number): DepartmentResponseDto {
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Department> {
     return this.departmentsService.findOne(id);
   }
 }

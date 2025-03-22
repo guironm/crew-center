@@ -7,9 +7,10 @@ import { useCreateEmployee } from "../hooks/useEmployees";
 import {
   createEmployeeSchema,
   CreateEmployeeDto,
-  departmentNameSchema,
-  DepartmentName,
+  defaultRolesByDepartment,
+  Department,
 } from "@repo/schemas";
+import { useDepartments } from "../hooks/useDepartments";
 
 interface CreateEmployeeFormProps {
   onSuccess?: () => void;
@@ -19,7 +20,9 @@ export default function CreateEmployeeForm({
   onSuccess,
 }: CreateEmployeeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const createMutation = useCreateEmployee();
+  const { data: departments = [] } = useDepartments();
 
   // Initialize React Hook Form
   const {
@@ -33,7 +36,7 @@ export default function CreateEmployeeForm({
       name: "",
       email: "",
       role: "",
-      department: "Engineering" as DepartmentName,
+      departmentId: "",
       salary: 50000,
       status: "active",
     },
@@ -42,22 +45,27 @@ export default function CreateEmployeeForm({
   // Handle form submission
   const onSubmit = async (data: CreateEmployeeDto) => {
     setIsSubmitting(true);
+    setErrorMessage(null); // Clear any previous errors
+    
     try {
       await createMutation.mutateAsync(data);
       reset();
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error("Error creating employee:", error);
+      setErrorMessage(error instanceof Error ? error.message : "An error occurred while creating the employee.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Get department names for the dropdown
-  const departmentNames = Object.values(departmentNameSchema.enum);
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+          {errorMessage}
+        </div>
+      )}
       <div>
         <label
           htmlFor="name"
@@ -114,25 +122,26 @@ export default function CreateEmployeeForm({
 
       <div>
         <label
-          htmlFor="department"
+          htmlFor="departmentId"
           className="block text-sm font-medium text-slate-700 mb-1"
         >
           Department
         </label>
         <select
-          id="department"
-          {...register("department")}
+          id="departmentId"
+          {...register("departmentId")}
           className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          {departmentNames.map((dept) => (
-            <option key={dept} value={dept}>
-              {dept}
+          <option value="">Select a department</option>
+          {departments.map((dept: Department) => (
+            <option key={dept.id} value={dept.id}>
+              {dept.name}
             </option>
           ))}
         </select>
-        {errors.department && (
+        {errors.departmentId && (
           <p className="mt-1 text-sm text-red-600">
-            {errors.department.message}
+            {errors.departmentId.message}
           </p>
         )}
       </div>

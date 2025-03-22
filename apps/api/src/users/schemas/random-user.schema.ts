@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 // RandomUser schema (subset of fields we care about)
 export const randomUserSchema = z.object({
+  id: z.string().uuid(),
   gender: z.string(),
   name: z.object({
     title: z.string(),

@@ -3,18 +3,25 @@ import {
   CreateEmployeeDto,
   UpdateEmployeeDto,
   ApiSearchParams,
+  PaginatedSearchParams,
+  PagedResponse,
 } from "@repo/schemas";
 import { config } from "../config/env";
+import axios from "axios";
 
 const API_URL = `${config.API_BASE_URL}:${config.API_BASE_PORT}`;
 
 export const employeeApi = {
   getAll: async (): Promise<Employee[]> => {
-    const response = await fetch(`${API_URL}/employees`);
-    if (!response.ok) {
-      throw new Error(`Error fetching employees: ${response.status}`);
+    try {
+      const response = await axios.get(`${API_URL}/employees`);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(`Error fetching employees: ${error.response?.status}`);
+      }
+      throw error;
     }
-    return response.json();
   },
 
   search: async (params: ApiSearchParams): Promise<Employee[]> => {
@@ -33,84 +40,147 @@ export const employeeApi = {
       return employeeApi.getAll();
     }
 
-    // Build query string from params
-    const queryParams = new URLSearchParams();
+    try {
+      // Build query params object
+      const queryParams: Record<string, string> = {};
 
-    console.log(
-      `[${new Date().toISOString()}] Search API called with params:`,
-      params,
-    );
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          queryParams[key] = String(value);
+        }
+      });
 
-    // Add all params directly to queryParams
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        console.log(`Adding param ${key}:`, value);
-        queryParams.append(key, String(value));
+      console.log(
+        `[${new Date().toISOString()}] Search API called with params:`,
+        queryParams,
+      );
+
+      const response = await axios.get(`${API_URL}/employees/search`, {
+        params: queryParams,
+      });
+
+      console.log(
+        `[${new Date().toISOString()}] Search API response:`,
+        response.data,
+      );
+
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(`Error searching employees: ${error.response?.status}`);
       }
-    });
-
-    const queryString = queryParams.toString();
-    const url = `${API_URL}/employees/search${queryString ? `?${queryString}` : ""}`;
-
-    console.log(`[${new Date().toISOString()}] Final search URL:`, url);
-
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Error searching employees: ${response.status}`);
+      throw error;
     }
-    return response.json();
   },
 
   getById: async (id: string | number): Promise<Employee> => {
-    const response = await fetch(`${API_URL}/employees/${id}`);
-    if (!response.ok) {
-      throw new Error(`Error fetching employee: ${response.status}`);
+    try {
+      const response = await axios.get(`${API_URL}/employees/${id}`);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(`Error fetching employee: ${error.response?.status}`);
+      }
+      throw error;
     }
-    return response.json();
   },
 
   create: async (data: CreateEmployeeDto): Promise<Employee> => {
-    const response = await fetch(`${API_URL}/employees`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error creating employee: ${response.status}`);
+    try {
+      const response = await axios.post(`${API_URL}/employees`, data);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        // Extract the specific error message from the API response
+        const errorMessage = error.response.data?.message || 
+                           `Error creating employee: ${error.response.status}`;
+        throw new Error(errorMessage);
+      }
+      throw error;
     }
-
-    return response.json();
   },
 
   update: async (
     id: string | number,
     data: UpdateEmployeeDto,
   ): Promise<Employee> => {
-    const response = await fetch(`${API_URL}/employees/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error updating employee: ${response.status}`);
+    try {
+      const response = await axios.put(`${API_URL}/employees/${id}`, data);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(`Error updating employee: ${error.response?.status}`);
+      }
+      throw error;
     }
-
-    return response.json();
   },
 
   delete: async (id: string | number): Promise<void> => {
-    const response = await fetch(`${API_URL}/employees/${id}`, {
-      method: "DELETE",
-    });
+    try {
+      await axios.delete(`${API_URL}/employees/${id}`);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(`Error deleting employee: ${error.response?.status}`);
+      }
+      throw error;
+    }
+  },
 
-    if (!response.ok) {
-      throw new Error(`Error deleting employee: ${response.status}`);
+  /**
+   * Search employees with pagination
+   */
+  searchPaginated: async (
+    params: PaginatedSearchParams,
+  ): Promise<PagedResponse<Employee>> => {
+    try {
+      // Build query params object
+      const queryParams: Record<string, string> = {};
+
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          queryParams[key] = String(value);
+        }
+      });
+
+      console.log(
+        `[${new Date().toISOString()}] Paginated search API called with params:`,
+        queryParams,
+      );
+
+      const response = await axios.get(`${API_URL}/employees/paginated`, {
+        params: queryParams,
+      });
+
+      console.log(
+        `[${new Date().toISOString()}] Paginated search API response meta:`,
+        response.data.meta,
+      );
+
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          `Error searching employees with pagination: ${error.response?.status}`,
+        );
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Get dashboard statistics
+   */
+  getStatistics: async () => {
+    try {
+      const response = await axios.get(`${API_URL}/employees/statistics`);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          `Error fetching dashboard statistics: ${error.response?.status}`
+        );
+      }
+      throw error;
     }
   },
 };

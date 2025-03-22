@@ -1,26 +1,30 @@
 import { z } from "zod";
-import { departmentNameSchema } from "../department";
+import { departmentSchema } from "../department";
+import { MIN_NAME_LENGTH, ValidationMessages } from "../common";
 
-// Employee status enum
+// Employee status enum - the single source of truth for status values
 export const employeeStatusEnum = z.enum(["active", "inactive", "on_leave"]);
 export type EmployeeStatus = z.infer<typeof employeeStatusEnum>;
 
-// Explicitly define the status values as a constant array
-export const EMPLOYEE_STATUSES: EmployeeStatus[] = [
-  "active",
-  "inactive",
-  "on_leave",
-];
-
-// Employee schema
+// Employee schema with proper validation messages
 export const employeeSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  email: z.string().email(),
+  id: z.string().uuid(),
+  name: z
+    .string()
+    .min(
+      MIN_NAME_LENGTH,
+      ValidationMessages.EMPLOYEE_NAME_MIN_LENGTH(MIN_NAME_LENGTH),
+    ),
+  email: z.string().email(ValidationMessages.EMPLOYEE_EMAIL_FORMAT),
   role: z.string(),
-  department: departmentNameSchema,
-  salary: z.number().positive(),
-  picture: z.string().url().optional(),
+  departmentId: z.string()
+    .min(1, ValidationMessages.EMPLOYEE_DEPARTMENT_REQUIRED)
+    .uuid({ message: ValidationMessages.EMPLOYEE_DEPARTMENT_REQUIRED }),
+  department: departmentSchema.optional(),
+  salary: z.coerce
+    .number()
+    .positive(ValidationMessages.EMPLOYEE_SALARY_POSITIVE),
+  picture: z.string().url().optional().nullable(),
   hireDate: z.date().optional(),
   status: employeeStatusEnum.default("active"),
 });

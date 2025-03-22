@@ -2,9 +2,8 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  Inject,
 } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
-import { SearchService } from '../search/search.service';
 import {
   Employee,
   CreateEmployeeDto,
@@ -12,150 +11,121 @@ import {
   ValidationMessages,
   ApiSearchParams,
 } from '@repo/schemas';
-import { UserToEmployeePipe } from './pipes/user-to-employee.pipe';
+import type { IEmployeeRepository } from './repositories/employee-repository.interface';
+import { EMPLOYEE_REPOSITORY } from './repositories/employee-repository.interface';
+import { EmployeeQueryBuilderService } from './services/query-builder.service';
 
 @Injectable()
 export class EmployeesService {
-  // Store employees fetched from the API
-  private employees: Employee[] = [];
-
-  // Track the next available ID
-  private nextId = 1;
-
   constructor(
-    private readonly usersService: UsersService,
-    private readonly userToEmployeePipe: UserToEmployeePipe,
-    private readonly searchService: SearchService,
+    private readonly queryBuilder: EmployeeQueryBuilderService,
+    @Inject(EMPLOYEE_REPOSITORY)
+    private readonly employeeRepository: IEmployeeRepository,
   ) {}
 
   async findAll(): Promise<Employee[]> {
-    // If we haven't already added employees, fetch them
-    if (this.employees.length === 0) {
-      try {
-        // Get random users and convert them to employees using the pipe
-        const randomUsers = await this.usersService.getRandomUsers(8);
-        const newEmployees = randomUsers.map((user) =>
-          this.userToEmployeePipe.transform(user),
-        );
+    console.log('EmployeesService: findAll');
+    return this.employeeRepository.findAll();
+  }
 
-        // Store these in our employees array so they can be accessed individually
-        this.employees.push(...newEmployees);
-      } catch (error) {
-        console.error('Failed to fetch random users:', error);
+  async findOne(id: string): Promise<Employee> {
+    const employee = await this.employeeRepository.findOne(id);
+    if (!employee) {
+      throw new NotFoundException(ValidationMessages.EMPLOYEE_NOT_FOUND(id));
+    }
+    return employee;
+  }
+
+  async create(createEmployeeDto: CreateEmployeeDto): Promise<Employee> {
+    // Check if employee with this email already exists
+    const existingEmployee = await this.employeeRepository.findByEmail(
+      createEmployeeDto.email,
+    );
+
+    if (existingEmployee) {
+      throw new ConflictException(
+        ValidationMessages.EMAIL_ALREADY_EXISTS(createEmployeeDto.email),
+      );
+    }
+
+    // Create new employee with UUID
+    return this.employeeRepository.create(createEmployeeDto);
+  }
+
+  async update(
+    id: string,
+    updateEmployeeDto: UpdateEmployeeDto,
+  ): Promise<Employee> {
+    // Check if we're trying to update to an email that's already taken
+    if (updateEmployeeDto.email) {
+      const emailOwner = await this.employeeRepository.findByEmail(
+        updateEmployeeDto.email,
+      );
+
+      if (emailOwner && emailOwner.id !== id) {
+        throw new ConflictException(
+          ValidationMessages.EMAIL_ALREADY_EXISTS(
+            updateEmployeeDto.email + ' ',
+          ),
+        );
       }
     }
 
-    // Return all employees
-    return this.employees;
+    try {
+      return await this.employeeRepository.update(id, updateEmployeeDto);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(ValidationMessages.EMPLOYEE_NOT_FOUND(id));
+      }
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to update employee: ${errorMessage}`);
+    }
   }
 
-  findOne(id: number): Employee {
-    const employee = this.employees.find((employee) => employee.id === id);
-
+  async delete(id: string): Promise<void> {
+    // Check if employee exists first
+    const employee = await this.employeeRepository.findOne(id);
     if (!employee) {
       throw new NotFoundException(ValidationMessages.EMPLOYEE_NOT_FOUND(id));
     }
 
-    return employee;
-  }
-
-  create(createEmployeeDto: CreateEmployeeDto): Employee {
-    // Check if employee with the same email already exists
-    if (createEmployeeDto.email) {
-      const existingEmployee = this.employees.find(
-        (employee) => employee.email === createEmployeeDto.email,
-      );
-
-      if (existingEmployee) {
-        throw new ConflictException(
-          ValidationMessages.EMPLOYEE_EMAIL_EXISTS(createEmployeeDto.email),
-        );
-      }
-    }
-
-    // Create new employee
-    const newEmployee: Employee = {
-      id: this.nextId++,
-      ...createEmployeeDto,
-      status: createEmployeeDto.status || 'active',
-      hireDate: createEmployeeDto.hireDate || new Date(),
-    };
-
-    // Add to employees array
-    this.employees.push(newEmployee);
-
-    return newEmployee;
-  }
-
-  update(id: number, updateEmployeeDto: UpdateEmployeeDto): Employee {
-    // Find the employee
-    const index = this.employees.findIndex((employee) => employee.id === id);
-
-    if (index === -1) {
-      throw new NotFoundException(ValidationMessages.EMPLOYEE_NOT_FOUND(id));
-    }
-
-    // Since we've checked the index exists, we can safely get the employee
-    const currentEmployee = this.employees[index]!;
-
-    // Check if updating email and if it conflicts with existing email
-    if (
-      updateEmployeeDto.email &&
-      updateEmployeeDto.email !== currentEmployee.email &&
-      this.employees.some((emp) => emp.email === updateEmployeeDto.email)
-    ) {
-      throw new ConflictException(
-        ValidationMessages.EMPLOYEE_EMAIL_EXISTS(updateEmployeeDto.email),
-      );
-    }
-
-    // Create the updated employee - explicitly maintaining required fields from the current employee
-    const updatedEmployee: Employee = {
-      id: currentEmployee.id, // Preserve ID
-      name: updateEmployeeDto.name || currentEmployee.name,
-      email: updateEmployeeDto.email || currentEmployee.email,
-      role: updateEmployeeDto.role || currentEmployee.role,
-      department: updateEmployeeDto.department || currentEmployee.department,
-      salary: updateEmployeeDto.salary || currentEmployee.salary,
-      status: updateEmployeeDto.status || currentEmployee.status,
-      picture:
-        updateEmployeeDto.picture !== undefined
-          ? updateEmployeeDto.picture
-          : currentEmployee.picture,
-      hireDate: updateEmployeeDto.hireDate || currentEmployee.hireDate,
-    };
-
-    this.employees[index] = updatedEmployee;
-
-    return updatedEmployee;
-  }
-
-  delete(id: number): void {
-    const index = this.employees.findIndex((employee) => employee.id === id);
-
-    if (index === -1) {
-      throw new NotFoundException(ValidationMessages.EMPLOYEE_NOT_FOUND(id));
-    }
-
-    this.employees.splice(index, 1);
+    await this.employeeRepository.delete(id);
   }
 
   /**
    * Find employees based on search parameters
-   * @param searchParams Search parameters for filtering
+   * @param searchParams Search parameters for filtering employees
    * @returns Filtered list of employees
    */
   async find(searchParams: ApiSearchParams): Promise<Employee[]> {
-    // Make sure employees are loaded first
-    if (this.employees.length === 0) {
-      await this.findAll();
-    }
+    // Generate database query from search params
+    const queryParams = this.queryBuilder.buildQueryParams(searchParams);
 
-    // Use search service to filter employees
-    return this.searchService.search(
-      this.employees,
-      searchParams,
-      ['name', 'email', 'role'], // Fields to search when query is provided
-    );
+    // Apply the filters through the repository
+    return this.employeeRepository.findMany(queryParams);
+  }
+
+  /**
+   * Get dashboard statistics
+   * @returns Employee statistics including counts by status and departments
+   */
+  async getStatistics() {
+    // Get total count and counts by status
+    const [total, active, inactive, onLeave, departmentCount] = await Promise.all([
+      this.employeeRepository.count(),
+      this.employeeRepository.countByStatus('active'),
+      this.employeeRepository.countByStatus('inactive'),
+      this.employeeRepository.countByStatus('on_leave'),
+      this.employeeRepository.countUniqueDepartments(),
+    ]);
+
+    return {
+      total,
+      active,
+      inactive,
+      onLeave,
+      departments: departmentCount
+    };
   }
 }

@@ -10,5 +10,3 @@ export const MAX_DESCRIPTION_LENGTH = 500;
 
 export const DEFAULT_MIN_SALARY = 30000;
 export const DEFAULT_MAX_SALARY = 500000;
-
-export const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;

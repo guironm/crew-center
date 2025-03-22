@@ -12,7 +12,7 @@ interface EmployeeCardProps {
 export default function EmployeeCard({ employee }: EmployeeCardProps) {
   return (
     <Link href={`/employees/${employee.id}`}>
-      <div className="rounded-lg shadow-md p-6 cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg bg-white border-2 border-slate-300">
+      <div className="hover:border-slate-600 rounded-lg shadow-md p-6 cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg bg-white border-2 border-slate-300">
         <div className="flex items-center mb-4">
           {employee.picture ? (
             <Image
@@ -42,7 +42,11 @@ export default function EmployeeCard({ employee }: EmployeeCardProps) {
           </div>
           <div className="flex items-center">
             <BuildingOfficeIcon className="w-4 h-4 mr-2" />
-            <span>{employee.department}</span>
+            <span>
+              {employee.department
+                ? employee.department.name
+                : "Unknown Department"}
+            </span>
           </div>
         </div>
       </div>

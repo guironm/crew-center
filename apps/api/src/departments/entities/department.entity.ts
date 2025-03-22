@@ -1,8 +1,13 @@
-import {
-  Department,
-  DepartmentName,
-  DepartmentResponseDto,
-} from '@repo/schemas';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
-// Re-export department types for easier consumption within API
-export type { Department, DepartmentName, DepartmentResponseDto };
+@Entity()
+export class Department {
+  @PrimaryColumn('uuid')
+  id!: string;
+
+  @Column()
+  name!: string;
+
+  @Column()
+  description!: string;
+}
