@@ -1,20 +1,21 @@
 /**
  * Environment configuration utility
  *
- * This module provides type-safe access to environment variables with fallbacks.
+ * This module provides type-safe access to environment variables with proper Next.js prefixing.
+ * Uses NEXT_PUBLIC_ prefix for client-side accessible variables.
  */
 
 // Environment variables with default fallbacks
 export const env = {
   // API Configuration
-  API_BASE_URL: process.env.API_BASE_URL || "http://localhost",
-  API_BASE_PORT: parseInt(process.env.API_BASE_PORT || "491", 10),
+  API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost",
+  API_BASE_PORT: parseInt(process.env.NEXT_PUBLIC_API_BASE_PORT || "491", 10),
 
   // App Configuration
   NODE_ENV: process.env.NODE_ENV || "development",
 
   // Feature flags
-  ENABLE_LOGGING: process.env.ENABLE_LOGGING === "true" || false,
+  ENABLE_LOGGING: process.env.NEXT_PUBLIC_ENABLE_LOGGING === "true" || false,
 };
 
 // For type safety, define the expected environment variable types

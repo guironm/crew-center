@@ -25,10 +25,14 @@ async function bootstrap() {
     .setDescription('The Crew Center API')
     .setVersion('1.0')
     .addTag('API')
+    .addBearerAuth()
     .build();
 
-  const documentFactory = (): any =>
-    SwaggerModule.createDocument(app, swaggerConfig);
+  const documentFactory = (): any => {
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    return document;
+  };
+  
   SwaggerModule.setup('api', app, documentFactory);
 
   await app.listen(config.API_BASE_PORT, config.HOST);

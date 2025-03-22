@@ -6,7 +6,7 @@ import {
   Delete,
   Param,
   Body,
-  ParseIntPipe,
+  ParseUUIDPipe,
   HttpCode,
   HttpStatus,
   Query,
@@ -37,6 +37,7 @@ import {
   employeeResponseSchema,
 } from '@repo/schemas';
 import { ZodPipe } from '../shared/pipes';
+import { EmployeeMapper } from '../shared/mappers';
 
 // Define local search params interface for simplicity
 interface EmployeeSearchParams {
@@ -50,7 +51,10 @@ interface EmployeeSearchParams {
 @ApiTags('employees')
 @Controller('employees')
 export class EmployeesController {
-  constructor(private readonly employeesService: EmployeesService) {}
+  constructor(
+    private readonly employeesService: EmployeesService,
+    private readonly employeeMapper: EmployeeMapper,
+  ) {}
 
   @Get('search')
   @ApiOperation({ summary: 'Search for employees' })
@@ -103,7 +107,7 @@ export class EmployeesController {
     // Use the find method which delegates to the search service
     const employees = await this.employeesService.find(searchParams);
 
-    return employees.map((employee) => this.convertToResponseDto(employee));
+    return this.employeeMapper.toResponseDtoList(employees);
   }
 
   @Get()
@@ -114,20 +118,37 @@ export class EmployeesController {
   })
   async findAll(): Promise<EmployeeResponseDto[]> {
     const employees = await this.employeesService.findAll();
-    // Convert using the employeeResponseSchema
-    return employees.map((employee) => this.convertToResponseDto(employee));
+    return this.employeeMapper.toResponseDtoList(employees);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get an employee by ID' })
-  @ApiParam({ name: 'id', description: 'Employee ID' })
-  @ApiOkResponse({
-    description: 'Returns the employee with the specified ID',
+  @ApiParam({
+    name: 'id',
+    description: 'The UUID of the employee',
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'The found employee',
+    schema: {
+      example: {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        role: 'Software Engineer',
+        department: 'Engineering',
+        salary: 80000,
+        status: 'active',
+      },
+    },
   })
   @ApiNotFoundResponse({ description: 'Employee not found' })
-  findOne(@Param('id', ParseIntPipe) id: number): EmployeeResponseDto {
-    const employee = this.employeesService.findOne(id);
-    return this.convertToResponseDto(employee);
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<EmployeeResponseDto> {
+    const employee = await this.employeesService.findOne(id);
+    return this.employeeMapper.toResponseDto(employee);
   }
 
   @Post()
@@ -139,53 +160,56 @@ export class EmployeesController {
     description: 'Employee created successfully',
   })
   @ApiConflictResponse({ description: 'Email already exists' })
-  create(
+  async create(
     @Body(new ZodPipe(createEmployeeSchema)) body: CreateEmployeeDto,
-  ): EmployeeResponseDto {
-    const employee = this.employeesService.create(body);
-    return this.convertToResponseDto(employee);
+  ): Promise<EmployeeResponseDto> {
+    const employee = await this.employeesService.create(body);
+    return this.employeeMapper.toResponseDto(employee);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update an employee' })
-  @ApiParam({ name: 'id', description: 'Employee ID' })
-  @ApiBody({
-    description: 'Employee update data',
+  @ApiParam({
+    name: 'id',
+    description: 'The UUID of the employee to update',
+    type: String,
   })
-  @ApiOkResponse({
-    description: 'Employee updated successfully',
+  @ApiBody({
+    schema: { example: { name: 'Jane Doe', salary: 85000 } },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'The updated employee',
+    schema: {
+      example: {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        name: 'Jane Doe',
+        email: 'john.doe@example.com',
+        salary: 85000,
+      },
+    },
   })
   @ApiNotFoundResponse({ description: 'Employee not found' })
-  @ApiConflictResponse({ description: 'Email already exists' })
-  update(
-    @Param('id', ParseIntPipe) id: number,
+  @ApiConflictResponse({ description: 'Email already in use' })
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
     @Body(new ZodPipe(updateEmployeeSchema)) body: UpdateEmployeeDto,
-  ): EmployeeResponseDto {
-    const employee = this.employeesService.update(id, body);
-    return this.convertToResponseDto(employee);
+  ): Promise<EmployeeResponseDto> {
+    const updatedEmployee = await this.employeesService.update(id, body);
+    return this.employeeMapper.toResponseDto(updatedEmployee);
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete an employee' })
-  @ApiParam({ name: 'id', description: 'Employee ID' })
+  @ApiParam({
+    name: 'id',
+    description: 'The UUID of the employee to delete',
+    type: String,
+  })
   @ApiResponse({ status: 204, description: 'Employee deleted successfully' })
   @ApiNotFoundResponse({ description: 'Employee not found' })
-  delete(@Param('id', ParseIntPipe) id: number): void {
-    this.employeesService.delete(id);
-  }
-
-  /**
-   * Convert an Employee entity to an EmployeeResponseDto using Zod schema
-   */
-  private convertToResponseDto(employee: Employee): EmployeeResponseDto {
-    // Pre-process the employee data to handle Date conversion
-    const processedData = {
-      ...employee,
-      hireDate: employee.hireDate ? employee.hireDate.toISOString() : undefined,
-    };
-
-    // Use Zod schema to validate and transform the data
-    return employeeResponseSchema.parse(processedData);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    await this.employeesService.delete(id);
   }
 }

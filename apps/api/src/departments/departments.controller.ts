@@ -1,6 +1,6 @@
 import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { DepartmentsService } from './departments.service';
-import type { DepartmentResponseDto } from './entities/department.entity';
+import { Department } from './entities/department.entity';
 import {
   ApiTags,
   ApiOperation,
@@ -36,11 +36,11 @@ export class DepartmentsController {
   @ApiOkResponse({
     description: 'Returns departments matching the search criteria',
   })
-  search(
+  async search(
     @Query('query') query?: string,
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder: 'asc' | 'desc' = 'asc',
-  ): DepartmentResponseDto[] {
+  ): Promise<Department[]> {
     const searchParams = {
       query,
       sortBy,
@@ -55,7 +55,7 @@ export class DepartmentsController {
   @ApiOkResponse({
     description: 'Returns a list of all departments',
   })
-  findAll(): DepartmentResponseDto[] {
+  async findAll(): Promise<Department[]> {
     return this.departmentsService.findAll();
   }
 
@@ -66,7 +66,7 @@ export class DepartmentsController {
     description: 'Returns the department with the specified ID',
   })
   @ApiNotFoundResponse({ description: 'Department not found' })
-  findOne(@Param('id', ParseIntPipe) id: number): DepartmentResponseDto {
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Department> {
     return this.departmentsService.findOne(id);
   }
 }

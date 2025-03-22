@@ -1,48 +1,55 @@
 import { Department, ApiSearchParams } from "@repo/schemas";
 import { config } from "../config/env";
+import axios from "axios";
 
 const API_URL = `${config.API_BASE_URL}:${config.API_BASE_PORT}`;
 
 export const departmentApi = {
   getAll: async (): Promise<Department[]> => {
-    const response = await fetch(`${API_URL}/departments`);
-    if (!response.ok) {
-      throw new Error(`Error fetching departments: ${response.status}`);
+    try {
+      const response = await axios.get(`${API_URL}/departments`);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(`Error fetching departments: ${error.response?.status}`);
+      }
+      throw error;
     }
-    return response.json();
   },
 
   search: async (params: ApiSearchParams): Promise<Department[]> => {
-    // Build query string from params
-    const queryParams = new URLSearchParams();
+    try {
+      // Build query params object
+      const queryParams: Record<string, string> = {};
+      
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          queryParams[key] = String(value);
+        }
+      });
 
-    console.log("Search params before processing:", params);
+      const response = await axios.get(`${API_URL}/departments/search`, {
+        params: queryParams
+      });
 
-    // Add all params directly to queryParams
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        console.log(`Adding param ${key}:`, value);
-        queryParams.append(key, String(value));
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(`Error searching departments: ${error.response?.status}`);
       }
-    });
-
-    const queryString = queryParams.toString();
-    const url = `${API_URL}/departments/search${queryString ? `?${queryString}` : ""}`;
-
-    console.log("Final search URL:", url);
-
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Error searching departments: ${response.status}`);
+      throw error;
     }
-    return response.json();
   },
 
   getById: async (id: string | number): Promise<Department> => {
-    const response = await fetch(`${API_URL}/departments/${id}`);
-    if (!response.ok) {
-      throw new Error(`Error fetching department: ${response.status}`);
+    try {
+      const response = await axios.get(`${API_URL}/departments/${id}`);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(`Error fetching department: ${error.response?.status}`);
+      }
+      throw error;
     }
-    return response.json();
   },
 };

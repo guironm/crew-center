@@ -2,9 +2,9 @@
 
 import {
   ApiSearchParams,
-  EMPLOYEE_STATUSES,
   EmployeeStatus,
   departmentNameSchema,
+  employeeStatusEnum,
 } from "@repo/schemas";
 import SearchBar from "../../components/ui/SearchBar";
 
@@ -26,10 +26,12 @@ export default function EmployeeSearchBar({
   );
 
   // Get status options from the schema
-  const statusOptions = EMPLOYEE_STATUSES.map((status) => ({
-    value: status,
-    label: formatStatusLabel(status),
-  }));
+  const statusOptions = Object.values(employeeStatusEnum.enum).map(
+    (status: EmployeeStatus) => ({
+      value: status,
+      label: formatStatusLabel(status),
+    }),
+  );
 
   // Helper function to format status labels for display
   function formatStatusLabel(status: EmployeeStatus): string {

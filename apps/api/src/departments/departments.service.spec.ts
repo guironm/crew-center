@@ -1,27 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DepartmentsService } from './departments.service';
-import { SearchService } from '../search/search.service';
 import { NotFoundException } from '@nestjs/common';
 import { ApiSearchParams } from '@repo/schemas';
 
 describe('DepartmentsService', () => {
   let service: DepartmentsService;
-  let searchService: SearchService;
-
-  const mockSearchService = {
-    search: jest.fn(),
-  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        DepartmentsService,
-        { provide: SearchService, useValue: mockSearchService },
-      ],
+      providers: [DepartmentsService],
     }).compile();
 
     service = module.get<DepartmentsService>(DepartmentsService);
-    searchService = module.get<SearchService>(SearchService);
   });
 
   afterEach(() => {
@@ -97,52 +87,35 @@ describe('DepartmentsService', () => {
   });
 
   describe('find', () => {
-    it('should call SearchService with correct parameters', () => {
-      // Mock data for departments
-      const mockDepartments = [
-        {
-          id: 1,
-          name: 'Engineering',
-          description: 'Software development and infrastructure',
-        },
-      ];
-
-      // Mock the search service to return the filtered results
-      mockSearchService.search.mockReturnValue(mockDepartments);
-
-      // Set up search parameters
-      const searchParams: ApiSearchParams = {
-        query: 'Engineering',
-        sortOrder: 'asc' as const,
-      };
-
-      const result = service.find(searchParams);
-
-      expect(result).toEqual(mockDepartments);
-      expect(mockSearchService.search).toHaveBeenCalledWith(
-        service['departments'], // Private departments array
-        searchParams,
-        ['name', 'description'], // Fields to search
-      );
-    });
-
     it('should filter departments based on search query', () => {
       // Search for 'eng' should return Engineering department
-      mockSearchService.search.mockImplementation((items, params) => {
-        if (params.query === 'eng') {
-          return items.filter(
-            (item) =>
-              item.name.toLowerCase().includes('eng') ||
-              item.description.toLowerCase().includes('eng'),
-          );
-        }
-        return items;
-      });
-
       const result = service.find({ query: 'eng', sortOrder: 'asc' });
 
       expect(result.length).toBeGreaterThan(0);
       expect(result.some((dept) => dept.name === 'Engineering')).toBe(true);
+    });
+
+    it('should sort departments correctly', () => {
+      // Sort by name in ascending order
+      const result1 = service.find({ sortBy: 'name', sortOrder: 'asc' });
+      expect(result1[0]?.name).toBe('Design'); // Design should be first alphabetically
+
+      // Sort by name in descending order
+      const result2 = service.find({ sortBy: 'name', sortOrder: 'desc' });
+      expect(result2[0]?.name).toBe('Sales'); // Sales should be first in reverse alphabetical order
+    });
+
+    it('should return all departments when no query is provided', () => {
+      const result = service.find({ sortOrder: 'asc' });
+      expect(result.length).toBe(7); // All departments should be returned
+    });
+
+    it('should return empty array when no matches found', () => {
+      const result = service.find({
+        query: 'xyz123nonexistent',
+        sortOrder: 'asc',
+      });
+      expect(result.length).toBe(0);
     });
   });
 });

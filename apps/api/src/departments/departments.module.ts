@@ -1,13 +1,16 @@
 import { Module } from '@nestjs/common';
 import { DepartmentsController } from './departments.controller';
 import { DepartmentsService } from './departments.service';
-import { SharedModule } from '../shared/shared.module';
-import { SearchService } from '../search/search.service';
+import { InMemoryDepartmentRepository } from './repositories/in-memory-department.repository';
+import { DepartmentQueryBuilderService } from './query-builder.service';
 
 @Module({
-  imports: [SharedModule],
   controllers: [DepartmentsController],
-  providers: [DepartmentsService, SearchService],
+  providers: [
+    DepartmentsService,
+    InMemoryDepartmentRepository,
+    DepartmentQueryBuilderService,
+  ],
   exports: [DepartmentsService],
 })
 export class DepartmentsModule {}
